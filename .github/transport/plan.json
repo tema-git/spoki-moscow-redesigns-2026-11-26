@@ -1,0 +1,17 @@
+{
+  "mode": "probe",
+  "sites": {
+    "virtu-style": [
+      "https://www.virtu-style.com/"
+    ],
+    "i-tec": [
+      "https://i-tec.ru/"
+    ],
+    "restavraciy": [
+      "https://restavraciy.ru/"
+    ],
+    "laans-piano": [
+      "https://laans-piano.ru/"
+    ]
+  }
+}

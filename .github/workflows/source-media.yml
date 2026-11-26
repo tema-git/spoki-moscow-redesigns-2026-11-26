@@ -1,0 +1,26 @@
+name: Check source media transport
+on:
+  push:
+    branches: [source-recovery-nov26]
+    paths: ['.github/transport/plan.json']
+permissions:
+  contents: read
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Read the selected public sources
+        run: python3 .github/transport/retrieve.py
+      - name: Store the result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: media-transfer
+          path: media-transfer/
+          retention-days: 1
+          if-no-files-found: warn
+

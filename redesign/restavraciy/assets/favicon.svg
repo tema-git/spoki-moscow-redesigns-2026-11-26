@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" width="90mm" height="90mm" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd" viewBox="0 0 90 90">
+ <defs>
+  <style type="text/css">
+   
+    .str0 {stroke:white;stroke-width:0.0762}
+    .fil0 {fill:white}
+    .fil1 {fill:#1F1A17;fill-rule:nonzero}
+   
+  </style>
+ </defs>
+ <g id="Слой_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <rect class="fil0 str0" x="0.0147" y="0.0147" width="89.9706" height="89.9706"/>
+  <path class="fil1" d="M41.1891 54.7937l0 27.3731 -14.9661 0 0 -74.3337 16.276 0c7.205,0 12.5573,0.867 16.038,2.5834 3.4996,1.734 5.24,5.2552 5.24,10.5811l0 20.6316c0,4.8659 -1.4223,8.3163 -4.2854,10.3334 -2.8447,2.0349 -8.9454,2.9727 -18.3025,2.8311zm10.5173 -13.4999l0 -19.4685c0,-2.6188 -6.6809,-3.3756 -10.5173,-3.3756l0 25.7274c3.8364,0 10.5173,-0.2647 10.5173,-2.8833z"/>
+ </g>
+</svg>

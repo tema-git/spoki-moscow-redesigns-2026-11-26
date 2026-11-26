@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#f8f9f2">
+<meta name="description" content="Калькулятор зимнего сада. Конструкции, проекты и материалы Мастерской зимних садов.">
+<title>Калькулятор зимнего сада · Мастерская зимних садов</title>
+<link rel="icon" href="../assets/art/mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/fonts/fonts.css">
+<link rel="stylesheet" href="../assets/styles.css">
+<script defer src="../assets/app.js"></script><script defer src="../assets/estimate.js"></script>
+</head>
+<body data-root="../">
+<a class="skip" href="#main">К содержанию</a><header class="bar"><div class="navwrap">
+<a class="wordmark" href="../index.html" aria-label="Мастерская зимних садов, главная"><span>Мастерская</span><b>зимних садов</b></a><nav class="wide-nav" aria-label="Основная навигация"><a href="../services/index.html">Конструкции</a><a href="../works/index.html">Наши работы</a><a href="../price/index.html">Цены</a><a href="../about/index.html">О мастерской</a></nav><div class="head-actions">
+<a class="head-phone" href="tel:+74993911124">+7 499 391-11-24</a><a class="magnet" href="#request"><span>Контакты <svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></a><button type="button" class="nav-toggle" aria-label="Открыть меню" aria-expanded="false" aria-controls="mobile-nav"><svg width="24" height="24" viewbox="0 0 24 24" aria-hidden="true"><path class="menu-lines" d="M3 8h18M3 16h18" fill="none" stroke="currentColor" stroke-width="2"></path><path class="menu-close" d="m5 5 14 14M19 5 5 19" fill="none" stroke="currentColor" stroke-width="2"></path></svg></button>
+</div>
+</div>
+<nav id="mobile-nav" class="mobile-nav" hidden aria-label="Меню"><a href="../services/index.html">Конструкции</a><a href="../works/index.html">Наши работы</a><a href="../price/index.html">Цены</a><a href="../about/index.html">О мастерской</a><a aria-current="page" href="index.html">Калькулятор</a><a href="../articles/index.html">Статьи</a><a href="../faq/index.html">Вопросы и ответы</a></nav></header><main id="main"><div class="wrap page-top">
+<nav class="crumb" aria-label="Хлебные крошки"><a href="../index.html">Главная</a><span aria-hidden="true">/</span><a href="../price/index.html">Цены</a><span aria-hidden="true">/</span><span aria-current="page">Калькулятор</span></nav><div class="page-intro"><div>
+<h1>Калькулятор зимнего сада</h1>
+<p>Выберите исходную конфигурацию, укажите остекление и добавьте проёмы. Расчёт можно перенести в черновик обращения и отредактировать.</p>
+</div></div>
+</div>
+<section class="est-section" id="estimate"><div class="wrap">
+<div class="section-label">По прайсу мастерской</div>
+<div class="section-title">
+<h2>Рассчитайте свой сад</h2>
+<p>Сложите площади остеклённых поверхностей. Створки, двери и люки считаются отдельно.</p>
+</div>
+<div class="estimate-grid">
+<form id="estimator" novalidate>
+<fieldset>
+<legend>Как будет стоять сад?</legend>
+<div class="choices shape-choices">
+<label class="choice"><input type="radio" name="shape" value="Пристройка к дому" checked><span>Пристройка к дому</span></label><label class="choice"><input type="radio" name="shape" value="Отдельный сад"><span>Отдельный сад</span></label><label class="choice"><input type="radio" name="shape" value="Сад на крыше"><span>Сад на крыше</span></label>
+</div>
+</fieldset>
+<fieldset>
+<legend>Площадь остекления</legend>
+<div class="form-pair">
+<label>Крыша, м²<input type="text" inputmode="decimal" id="roof" value="20" autocomplete="off" maxlength="14"></label><label>Фасады, м²<input type="text" inputmode="decimal" id="facade" value="20" autocomplete="off" maxlength="14"></label>
+</div>
+<p class="hint">Фасады — все внешние остеклённые стены. Площадь пола в расчёт не входит.</p>
+<details class="fold" id="dimension-help"><summary>Определить по размерам пристройки</summary><div class="inside">
+<p>Для односкатной пристройки вдоль стены дома. Считаем прямоугольную крышу и три внешних фасада. Длину измеряют вдоль дома, вынос — от дома.</p>
+<a class="frame-link" href="https://www.zimsad-master.ru/images/sheme.png" target="_blank" rel="noopener noreferrer"><span>Схема размеров мастерской</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a><div class="form-pair dims">
+<label>Длина вдоль дома, м<input type="text" inputmode="decimal" id="dim-length" value="" autocomplete="off" maxlength="14" placeholder="6"></label><label>Вынос от дома, м<input type="text" inputmode="decimal" id="dim-width" value="" autocomplete="off" maxlength="14" placeholder="3"></label><label>Высота у дома, м<input type="text" inputmode="decimal" id="dim-high" value="" autocomplete="off" maxlength="14" placeholder="3,5"></label><label>Высота снаружи, м<input type="text" inputmode="decimal" id="dim-low" value="" autocomplete="off" maxlength="14" placeholder="2,5"></label>
+</div>
+<p class="field-err" id="dim-error" role="status"></p>
+<button type="button" id="dimensions" class="button secondary">Подставить площади <svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+</div></details>
+</fieldset>
+<fieldset>
+<legend>Соотношение крыши и фасадов</legend>
+<div class="choices">
+<label class="choice"><input type="radio" name="ratio" value="equal" checked><span>Сопоставимы</span></label><label class="choice"><input type="radio" name="ratio" value="large"><span>Крыша значительно больше</span></label><label class="choice"><input type="radio" name="ratio" value="small"><span>Крыша значительно меньше</span></label>
+</div>
+<p class="hint">У «значительно больше» и «значительно меньше» в прайсе нет процентного порога. Выберите описание вашей конструкции. Строку подтвердит мастерская.</p>
+</fieldset>
+<fieldset>
+<legend>Профиль для базового остекления</legend>
+<div class="choices">
+<label class="choice"><input type="radio" name="system" value="sial" checked><span>«Сиал» КП-50К</span></label><label class="choice"><input type="radio" name="system" value="schuco"><span>Schüco</span></label>
+</div>
+</fieldset>
+<details class="fold"><summary>Добавить открывающиеся элементы</summary><div class="inside">
+<p>Укажите суммарную площадь изделий каждого типа, в м². Цена изделий указана без стекла. Их площадь уже входит в площадь крыши или фасадов.</p>
+<div class="form-pair">
+<label>Открывающаяся створка КПТ-74<small>34 000 ₽/м² изделия</small><input type="text" inputmode="decimal" id="sash" value="" autocomplete="off" maxlength="14" placeholder="0"></label><label>Входная дверь КПТ-74<small>39 000 ₽/м² изделия</small><input type="text" inputmode="decimal" id="door" value="" autocomplete="off" maxlength="14" placeholder="0"></label><label>Окно-дверь Schüco PASK<small>95 000 ₽/м² изделия</small><input type="text" inputmode="decimal" id="pask" value="" autocomplete="off" maxlength="14" placeholder="0"></label><label>Люк КПТ-74 с приводом GEZE<small>45 000 ₽/м² изделия</small><input type="text" inputmode="decimal" id="hatch" value="" autocomplete="off" maxlength="14" placeholder="0"></label>
+</div>
+</div></details><details class="fold"><summary>Эскизы и пожелания к комплектации</summary><div class="inside">
+<p>У мастерской 14 эскизов формы сада. Можно открыть их в отдельной вкладке и указать номер для обсуждения.</p>
+<ol class="drawing-links">
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/1.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 1</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/2.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 2</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/3.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 3</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/4.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 4</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/5.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 5</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/6.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 6</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/7.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 7</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/8.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 8</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/9.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 9</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/10.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 10</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/11.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 11</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/12.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 12</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/13.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 13</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+<li><a class="frame-link" href="https://www.zimsad-master.ru/bitrix/templates/web202/images/order_img/14.jpg" target="_blank" rel="noopener noreferrer"><span>Эскиз 14</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></li>
+</ol>
+<label>Номер эскиза, если выбран<input id="sketch" inputmode="numeric" maxlength="2" placeholder="От 1 до 14"></label><fieldset class="spec-options">
+<legend>Основание, солнцезащита и дополнительные работы</legend>
+<div>
+<label class="equipment"><input name="preferences" type="checkbox" value="Готовое основание"><span>Готовое основание</span></label><label class="equipment"><input name="preferences" type="checkbox" value="Нужно основание"><span>Нужно основание</span></label><label class="equipment"><input name="preferences" type="checkbox" value="Шторы"><span>Шторы</span></label><label class="equipment"><input name="preferences" type="checkbox" value="Жалюзи"><span>Жалюзи</span></label><label class="equipment"><input name="preferences" type="checkbox" value="Маркизы"><span>Маркизы</span></label><label class="equipment"><input name="preferences" type="checkbox" value="Отопление"><span>Отопление</span></label><label class="equipment"><input name="preferences" type="checkbox" value="Вентиляция"><span>Вентиляция</span></label><label class="equipment"><input name="preferences" type="checkbox" value="Гидроизоляция"><span>Гидроизоляция</span></label><label class="equipment"><input name="preferences" type="checkbox" value="Электропроводка"><span>Электропроводка</span></label><label class="equipment"><input name="preferences" type="checkbox" value="Демонтаж"><span>Демонтаж</span></label><label class="equipment"><input name="preferences" type="checkbox" value="Отделка"><span>Отделка</span></label><label class="equipment"><input name="preferences" type="checkbox" value="Вывоз мусора"><span>Вывоз мусора</span></label>
+</div>
+</fieldset>
+<p class="hint">Эти пожелания перейдут в черновик. Их стоимость мастерская рассчитает отдельно.</p>
+</div></details><p class="field-err" id="estimate-error" role="status"></p>
+<div class="actions">
+<button id="calc" class="button primary" type="submit">Рассчитать <svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></button><button class="text-button" id="reset-calc" type="button">Сбросить</button>
+</div>
+</form>
+<aside class="estimate-aside"><div class="estimate-paper" id="estimate-result" tabindex="-1" aria-live="polite">
+<div class="section-label">Предварительная оценка</div>
+<h3>Стоимость сада</h3>
+<div class="estimate-output"><p>Введите площади крыши и фасадов, выберите строку прайса и нажмите «Рассчитать».</p></div>
+</div>
+<p class="hint">Точный состав и стоимость мастерская определит после замера. Основание, отопление, вентиляцию и отделку уточняют отдельно. Для деревянного, стального или комбинированного каркаса, поликарбоната и сэндвич-панелей нужен отдельный расчёт.</p>
+<a class="inline-link" href="../price/index.html"><span>Матрица цен и состав стеклопакетов</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></aside>
+</div>
+</div></section><section id="request" class="contact-section"><div class="wrap contact-grid">
+<div>
+<div class="section-label">Мастерская в Москве</div>
+<h2>Обсудим ваш<br> зимний сад</h2>
+<p>Расскажите, где будет сад, как вы хотите им пользоваться и какие размеры уже известны.</p>
+<div class="phone-list">
+<a class="contact-call" href="tel:+74993911124"><span>+7 499 391-11-24</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a><a class="contact-call" href="tel:+79031111224"><span>+7 903 111-12-24</span><svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></a>
+</div>
+<p class="contact-small">Ежедневно с 9:00 до 22:00<br>Москва, Старопименовский переулок, д. 18, офис 1</p>
+<div class="mail-list">
+<a href="mailto:info@zimsad-master.ru">info@zimsad-master.ru</a><a href="mailto:zimsad-master@inbox.ru">zimsad-master@inbox.ru</a>
+</div>
+</div>
+<div class="form-paper">
+<h3>Черновик обращения</h3>
+<p>Это демоформа. Данные остаются на этой странице. Сообщение в мастерскую не отправляется, реальная заявка не создаётся.</p>
+<form id="request-form" novalidate autocomplete="off">
+<div class="form-pair">
+<label>Имя<input id="customer" type="text" maxlength="80" required aria-describedby="err-name"><small id="err-name" class="field-err"></small></label><label>Телефон<input id="phone" type="tel" inputmode="tel" maxlength="35" required aria-describedby="err-phone"><small id="err-phone" class="field-err"></small></label>
+</div>
+<label>О вашем проекте<textarea id="brief" maxlength="5000" rows="4" placeholder="Место, назначение, размеры и пожелания"></textarea></label><button class="button primary" type="submit">Подготовить черновик <svg class="arrow" width="18" height="18" viewbox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+</form>
+<div id="form-success" hidden tabindex="-1">
+<div class="success-check"><svg width="22" height="22" viewbox="0 0 24 24" aria-hidden="true"><path d="m4 13 5 5L21 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg></div>
+<h4>Черновик готов</h4>
+<p>Вы проверили исходные данные. Чтобы обсудить сад с мастерской, воспользуйтесь её телефоном или почтой.</p>
+<div class="draft-text"></div>
+<button class="button secondary" type="button" id="edit-draft">Вернуться к черновику</button><button class="text-button" type="button" id="new-draft">Заполнить заново</button>
+</div>
+</div>
+</div></section><script type="application/json" id="work-seeds">{"1491": ["Зимний сад в Витенево", "90"], "1494": ["Сад в Западной резиденции", "108"], "1488": ["Раздвижной зимний сад", "90"], "1489": ["Балашиха Сад", "52"], "1490": ["Беседка на Рублевском шоссе", ""], "1492": ["Витраж на Рублёвке", "14"], "1493": ["Сад в деревне Новинки", "86"], "1495": ["Веранда в Немчинове", "28"], "1496": ["Зимний сад в Строгино", "30"], "1497": ["Пожарский фонари", "28"], "1498": ["Вход Погодинская", "197"], "1499": ["Вход Стадион Буревестник", "140"], "1500": ["Вход Трубецкая", "177"], "1501": ["ЖК Андреевский", "180"], "1502": ["Зенитный фонарь-пирамида", "32"], "1503": ["Купол «Грот»", "55"], "1504": ["Купол «Ротонга»", "12"], "1505": ["Зимний сад в Зеленограде", "66"], "1506": ["Сад на 26 этаже", "72"], "1476": ["Зимний сад Ильинское", "78"], "1477": ["Переход 2", "53"], "1478": ["Ресторан Twins", "231"], "1479": ["Лоджия в Звенигороде", "51"], "1480": ["Теплица в Сергиевом Посаде", "80"], "1475": ["Вход в подвал", "15"], "1467": ["Тамбуры Малая Дмитровка", ""], "1466": ["Сад Дубровка", "140"], "1465": ["Оранжерея сосновый бор", "95"], "1464": ["Сад ГК Орловский", "200"], "1462": ["Сад Согласие 2", "143"], "1461": ["Тамбуры Звенигород", "102"], "1460": ["Смоленка сад", "78"], "1459": ["Сад Томилино", "112"], "1457": ["Переход Правдинский", "95"], "1456": ["Оранжерея в Монтевиле", "72"], "1455": ["Мичуринский балкон", "152"], "1454": ["Купол Малаховка", "85"], "1453": ["Зимний сад в Домодедове", "173"], "1444": ["Переход калужское", ""], "1443": ["Навес Домодедово 2", ""], "1442": ["Зимний сад Электроугли", ""], "1441": ["Зимний сад Ховрино", ""], "1440": ["Зимний сад Пудовкина", ""], "1439": ["Зимний сад Домодедово 1", ""], "1438": ["Веранда Бутово", ""], "1420": ["Фонарь Хлебниково", "25"], "1419": ["Тамбур Переславль", "32"], "1418": ["Паруса 3", "140"], "1417": ["Паруса 2", "340"], "1416": ["Мангальная Знаменское", "62"], "1415": ["Котедж Знаменское", "240"], "1414": ["Зимний сад университет", "85"], "1413": ["Зимний сад Тверская-Ямская", "53"], "1412": ["Зимний сад на Риге", "70"], "1411": ["Зимний сад Мисайлово", "36"], "1410": ["Зимний сад Королев", "40"], "1409": ["Зимний сад Инициативная", "27"], "1408": ["Зимний сад в Переславле", "70"], "1407": ["Купол в Здравнице", "340"], "147": ["Зимний сад, Ярославское шоссе", "174"], "146": ["Зимний сад, Минская улица", "830"], "144": ["Купол Сходня", "295"], "143": ["Зимний сад Елино", "48"], "142": ["Зимний сад Голиково", "32"], "141": ["Балкон 2", "26,5"], "140": ["Зимний сад Пушкино", "68"], "139": ["Балкон 3", "28,5"], "138": ["Зимний Истра", "32"], "137": ["Вход Елино", "13"], "121": ["Зимний сад в поселке Голиково", "248"], "120": ["Зимний сад Истра", "30"], "119": ["Оранжерея", "235"], "118": ["Зимний сад Сходня", "24"], "117": ["Мост", "526"], "116": ["Зенитный фонарь", "20"], "115": ["Кафе", "156"], "114": ["Входная группа", "11"], "113": ["Зимний сад Сходня 2", "36"], "112": ["Входная группа на Рублёвском шоссе", "28"], "111": ["Кафе гостиница", "62"]}</script></main><footer class="footer"><div class="wrap footgrid">
+<div>
+<a class="wordmark" href="../index.html" aria-label="Мастерская зимних садов, главная"><span>Мастерская</span><b>зимних садов</b></a><p>Производство в Чехове.<br>Работаем ежедневно с 9:00 до 22:00.</p>
+</div>
+<nav aria-label="Разделы сайта"><a href="../services/index.html">Конструкции и услуги</a><a href="../works/index.html">Наши работы</a><a href="../price/index.html">Прайс</a><a href="index.html">Калькулятор</a></nav><nav aria-label="О мастерской"><a href="../about/index.html">О компании</a><a href="../faq/index.html">Вопросы и ответы</a><a href="../articles/index.html">Полезные статьи</a><a href="../contact/index.html">Контакты</a></nav>
+</div>
+<div class="wrap footbase">
+<span>Мастерская зимних садов, Москва</span><a href="../sitemap/index.html">Карта сайта</a><a href="../politika-konfidentsialnosti/index.html">Данные формы</a><a href="https://spoki.studio/">Сайт создан Spoki Studio</a>
+</div></footer>
+</body>
+</html>

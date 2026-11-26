@@ -1,4 +1,4 @@
-name: Complete the piano workshop galleries
+name: Complete the manufacturer's technical gallery
 on:
   push:
     branches: [source-recovery-nov26]
@@ -6,23 +6,18 @@ on:
 permissions:
   contents: read
 jobs:
-  complete:
+  drawings:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Retrieve and prepare the remaining photographs
-        run: |
-          python3 .github/transport/retrieve.py
-          mv media-transfer raw
-          python3 -m venv "$RUNNER_TEMP/picture"
-          "$RUNNER_TEMP/picture/bin/pip" --disable-pip-version-check -q install Pillow==11.3.0
-          "$RUNNER_TEMP/picture/bin/python" .github/transport/prepare-images.py
+      - name: Preserve the full-resolution technical originals
+        run: python3 .github/transport/retrieve.py
       - uses: actions/upload-artifact@v4
         with:
-          name: gallery-laans-piano-b
-          path: gallery/
+          name: gallery-virtu-style-tech
+          path: media-transfer/
           compression-level: 0
           retention-days: 1

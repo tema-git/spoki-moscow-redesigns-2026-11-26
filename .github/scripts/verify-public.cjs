@@ -82,6 +82,10 @@ async function review(browser, slug) {
 (async()=>{
   const slugs=fs.readdirSync(root,{withFileTypes:true}).filter(p=>p.isDirectory()).map(p=>p.name);
   if(slugs.length!==10)throw Error("Expected ten demos, found "+slugs.length);
+  const index = path.resolve("index.html");
+  const entries = Array.from(fs.readFileSync(index, "utf8").matchAll(/href="redesign\/([^"/]+)\/"/g), match => match[1]).sort();
+  if (JSON.stringify(entries) !== JSON.stringify([...slugs].sort())) throw Error("Demo catalogue does not match the ten sites");
+  await compare(origin + prefix, index, "catalogue");
   const localChrome=["/usr/bin/google-chrome","/usr/bin/chromium","/usr/bin/chromium-browser"].find(f=>fs.existsSync(f));
   const browser=await chromium.launch(localChrome?{executablePath:localChrome,headless:true}:{headless:true});
   const pending=[...slugs];

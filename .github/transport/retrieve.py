@@ -1,4 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
+import os
+import http.client
 import hashlib
 import json
 import re
@@ -16,6 +18,33 @@ domains = {"i-tec": "i-tec.ru", "laans-piano": "laans-piano.ru", "virtu-style": 
 max_bytes = 24 * 1024 ** 2
 network_pauses = {}
 lock = threading.Lock()
+connections = threading.local()
+
+def receive(url):
+    u=urlsplit(url)
+    store=getattr(connections,'connections',None)
+    if store is None: store={}; connections.connections=store
+    for attempt in range(2):
+        conn=store.get(u.hostname)
+        if conn is None:
+            conn=http.client.HTTPSConnection(u.hostname,timeout=14)
+            store[u.hostname]=conn
+        try:
+            path=u.path or "/"
+            if u.query: path += "?"+u.query
+            conn.request("GET",path,headers={"User-Agent":"SpokiStudio-PublicGallery/1.0","Accept":"image/*","Accept-Encoding":"identity"})
+            response=conn.getresponse()
+            if response.status!=200:
+                response.read(1024);conn.close();store.pop(u.hostname,None)
+                raise HTTPError(url,response.status,response.reason,response.headers,None)
+            mime=response.headers.get_content_type()
+            body=response.read(max_bytes+1)
+            if len(body)>max_bytes: conn.close();store.pop(u.hostname,None)
+            return mime,body
+        except HTTPError: raise
+        except (OSError,http.client.HTTPException):
+            conn.close();store.pop(u.hostname,None)
+            if attempt: raise
 
 def allowed(url, domain):
     u = urlsplit(url)
@@ -31,33 +60,33 @@ def request(entry):
     mode = plan["mode"]
     headers = {"User-Agent":"SpokiStudio-PublicGallery/1.0", "Accept":"image/*" if mode=="media" else "text/html,image/*"}
     try:
-        with urlopen(Request(url,headers=headers),timeout=15) as resp:
-            result.update(status=resp.status, media=resp.headers.get_content_type(), effective=resp.geturl())
-            if not allowed(resp.geturl(),domains[slug]): return {**result,"error":"different origin"}
-            if mode=="probe":
-                result["received"]=len(resp.read(1400))
-                print(slug,resp.status,result["media"],flush=True)
+        if mode=="probe":
+            with urlopen(Request(url,headers=headers),timeout=15) as resp:
+                result.update(status=resp.status,media=resp.headers.get_content_type(),effective=resp.geturl(),received=len(resp.read(1400)))
                 return result
-            if not resp.headers.get_content_type().startswith("image/"):
-                return {**result,"error":"not an image"}
-            data=resp.read(max_bytes+1)
-            if len(data)>max_bytes or len(data)<120: return {**result,"error":"size outside limits"}
-            ext={"image/png":"png","image/jpeg":"jpg","image/webp":"webp","image/avif":"avif","image/gif":"gif"}.get(result["media"])
-            if not ext:return {**result,"error":"unsupported raster format"}
-            file=Path(slug)/(hashlib.sha256(url.encode()).hexdigest()+"."+ext)
-            filepath=root/file
-            filepath.parent.mkdir(exist_ok=True)
-            filepath.write_bytes(data)
-            result.update(file=file.as_posix(),bytes=len(data),sha256=hashlib.sha256(data).hexdigest())
+        mime,data=receive(url)
+        result.update(status=200,media=mime)
+        if not mime.startswith("image/"): return {**result,"error":"not an image"}
+        if len(data)>max_bytes or len(data)<120: return {**result,"error":"size outside limits"}
+        ext={"image/png":"png","image/jpeg":"jpg","image/webp":"webp","image/avif":"avif","image/gif":"gif"}.get(mime)
+        if not ext:return {**result,"error":"unsupported raster format"}
+        file=Path(slug)/(hashlib.sha256(url.encode()).hexdigest()+"."+ext)
+        filepath=root/file
+        filepath.parent.mkdir(exist_ok=True)
+        filepath.write_bytes(data)
+        result.update(file=file.as_posix(),bytes=len(data),sha256=hashlib.sha256(data).hexdigest())
     except HTTPError as exc:
         result.update(status=exc.code,error=str(exc))
         if exc.code in {401,403,429}:
             with lock:network_pauses[slug]=True
-    except OSError as exc:
+    except (OSError,http.client.HTTPException) as exc:
         result["error"]=str(exc)
     return result
 
-jobs=[(slug,u) for slug,urls in plan["sites"].items() for u in dict.fromkeys(urls)]
+chosen=os.getenv("SOURCE")
+if chosen: plan["sites"]={chosen:plan["sites"].get(chosen,[])}
+start=int(os.getenv("RANGE_START","0"));end=int(os.getenv("RANGE_END","50000"))
+jobs=[(slug,u) for slug,urls in plan["sites"].items() for u in list(dict.fromkeys(urls))[start:end]]
 def for_site(slug):
     items=[x for x in jobs if x[0]==slug]
     if plan["mode"]=="probe": workers=1

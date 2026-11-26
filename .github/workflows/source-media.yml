@@ -1,4 +1,4 @@
-name: Check source media transport
+name: Gather requested public gallery images
 on:
   push:
     branches: [source-recovery-nov26]
@@ -7,20 +7,75 @@ permissions:
   contents: read
 jobs:
   transfer:
+    strategy:
+      fail-fast: false
+      matrix:
+        source: ["i-tec", "laans-piano", "virtu-style"]
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 75
+    env:
+      SOURCE: ${{ matrix.source }}
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Read the selected public sources
-        run: python3 .github/transport/retrieve.py
-      - name: Store the result
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Transfer batch a
+        if: success()
+        env:
+          RANGE_START: "0"
+          RANGE_END: "160"
+        run: |
+          rm -rf media-transfer
+          python3 .github/transport/retrieve.py
+      - uses: actions/upload-artifact@v4
         with:
-          name: media-transfer
+          name: gallery-${{ matrix.source }}-a
           path: media-transfer/
+          compression-level: 0
           retention-days: 1
-          if-no-files-found: warn
-
+          if-no-files-found: ignore
+      - name: Transfer batch b
+        if: success()
+        env:
+          RANGE_START: "160"
+          RANGE_END: "900"
+        run: |
+          rm -rf media-transfer
+          python3 .github/transport/retrieve.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gallery-${{ matrix.source }}-b
+          path: media-transfer/
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: ignore
+      - name: Transfer batch c
+        if: success()
+        env:
+          RANGE_START: "900"
+          RANGE_END: "2000"
+        run: |
+          rm -rf media-transfer
+          python3 .github/transport/retrieve.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gallery-${{ matrix.source }}-c
+          path: media-transfer/
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: ignore
+      - name: Transfer batch d
+        if: success()
+        env:
+          RANGE_START: "2000"
+          RANGE_END: "20000"
+        run: |
+          rm -rf media-transfer
+          python3 .github/transport/retrieve.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gallery-${{ matrix.source }}-d
+          path: media-transfer/
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: ignore

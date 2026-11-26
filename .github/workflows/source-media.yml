@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        source: ["i-tec", "laans-piano", "virtu-style"]
+        source: ["restavraciy"]
     runs-on: ubuntu-latest
     timeout-minutes: 75
     env:

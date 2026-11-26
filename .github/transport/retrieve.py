@@ -7,7 +7,7 @@ import re
 import threading
 import time
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, quote
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
@@ -30,8 +30,8 @@ def receive(url):
             conn=http.client.HTTPSConnection(u.hostname,timeout=14)
             store[u.hostname]=conn
         try:
-            path=u.path or "/"
-            if u.query: path += "?"+u.query
+            path=quote(u.path or "/", safe="/%:@-._~!$&'()*+,;=")
+            if u.query: path += "?"+quote(u.query, safe="=&%+/:?@-._~!$'()*,;")
             conn.request("GET",path,headers={"User-Agent":"SpokiStudio-PublicGallery/1.0","Accept":"image/*","Accept-Encoding":"identity"})
             response=conn.getresponse()
             if response.status!=200:
@@ -79,7 +79,7 @@ def request(entry):
         result.update(status=exc.code,error=str(exc))
         if exc.code in {401,403,429}:
             with lock:network_pauses[slug]=True
-    except (OSError,http.client.HTTPException) as exc:
+    except (OSError,http.client.HTTPException,UnicodeError,ValueError) as exc:
         result["error"]=str(exc)
     return result
 

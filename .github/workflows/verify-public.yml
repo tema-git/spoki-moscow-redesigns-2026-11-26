@@ -1,0 +1,31 @@
+name: Verify public redesigns
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Check published HTML, assets and contact routes
+        run: |
+          npm install --prefix "$RUNNER_TEMP/spoki-check" --ignore-scripts --no-audit --no-fund playwright@1.56.1
+          if ! command -v google-chrome >/dev/null && ! command -v chromium >/dev/null; then
+            "$RUNNER_TEMP/spoki-check/node_modules/.bin/playwright" install chromium
+          fi
+          NODE_PATH="$RUNNER_TEMP/spoki-check/node_modules" node .github/scripts/verify-public.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verified-redesigns
+          retention-days: 7
+          path: qa-output/
+          if-no-files-found: warn

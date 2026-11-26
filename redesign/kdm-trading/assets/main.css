@@ -101,3 +101,4 @@ section[id],main[id],*:focus{scroll-margin-top:7px}
 .power-table>div{position:relative}.power-table>div:after{content:"";position:absolute;inset:-1px auto auto 0;width:0;height:2px;background:#46756f;transition:width .18s}.selector-info:hover .power-table>div:after{width:calc(53% + var(--rx,0)*37%)}
 .service-band .react:hover .section-tag i,.contact-intro:hover .section-tag i{width:calc(30px + var(--rx,0)*11px)}
 }
+.choices .choice:nth-child(5):last-child{grid-column:1/-1}

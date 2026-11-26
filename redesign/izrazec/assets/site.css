@@ -69,7 +69,7 @@ figure{min-width:0}
 .tile-depth{position:relative;width:100%;height:100%;border-radius:3%;background:#a7744e;box-shadow:1px 1px #d8b77b,2px 3px #b38a5f,3px 5px #956e4a,4px 7px #9f714e,5px 9px #815b3d,12px 26px 26px #102e28a1,26px 38px 46px #112e295c}
 .hero-tile{width:100%;height:100%;object-fit:contain}
 .sheen{position:absolute;inset:0;border-radius:3%;background:linear-gradient(var(--gloss,132deg),#fff8d822,transparent 40%,#7563490b 75%,#fff5d91a);pointer-events:none}
-.plate-mark{position:absolute;right:23px;bottom:20px;width:39px;height:39px;fill:none;stroke:#f1e9c485;stroke-width:1.3;pointer-events:none}
+
 .hero-plate figcaption{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:11px;color:#505d51;font-size:14px;letter-spacing:.045em}
 .motifs{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .motifs button{display:flex;align-items:center;gap:6px;font-size:16px;padding:5px 7px;color:var(--muted);border-bottom:1px solid transparent;line-height:1.3}
@@ -249,7 +249,7 @@ footer{background:var(--paper);color:var(--ink);border-top:1px solid var(--line)
   .hero-grid{grid-template-columns:1fr;gap:21px;padding-block:25px 17px}.hero-copy{padding:0}
   .hero h1{font-size:clamp(72px,13.5vw,94px);line-height:.88}.hero h1 br{display:none}.hero h1 em{margin-left:.15em}
   .hero-copy .over{margin-bottom:12px}.hero-copy>p:not(.over){max-width:51ch;margin:16px 0 18px}
-  .plate-field{aspect-ratio:2.1;border-radius:43% 43% 3px 3px/5% 5% 3px 3px}.tile-position{width:41%}.plate-mark{width:29px;height:29px;bottom:10px;right:13px}
+  .plate-field{aspect-ratio:2.1;border-radius:43% 43% 3px 3px/5% 5% 3px 3px}.tile-position{width:41%}
   .hero-plate figcaption{padding-top:6px}.category-strip .shell{width:100%;grid-template-columns:repeat(3,minmax(0,1fr))}
   .cat-tab{border-bottom:1px solid var(--line);padding:10px 15px;font-size:17px}.cat-tab:nth-child(3n+1){border-left:0}.cat-tab:last-child{border-right:0}.cat-tab:nth-child(n+4){border-bottom:0}
   .section{padding-block:43px}.section-head{margin-bottom:20px;gap:10px}.section-head>.link{white-space:normal}.section-lead{font-size:18px}

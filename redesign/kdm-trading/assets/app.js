@@ -170,8 +170,8 @@ function configurator(request) {
   if (!form) return;
   const result = select('#config-result'), versionBox = select('.version-box', result);
   const batch = form.elements.batch, qty = form.elements.quantity, power = form.elements.watts;
-  const supplyLabels = {electric:'Только 220 В',natural:'220 В и природный газ',lpg:'220 В и сжиженный газ (LPG)',unknown:'Подключение нужно уточнить'};
-  const versions = {electric:'Электрическое · 5 245 Вт',natural:'Газовое · природный газ · 295 Вт',lpg:'Газовое · LPG · 295 Вт'};
+  const supplyLabels = {electric:'Только 220 В',natural:'220 В и природный газ',lpg:'220 В и сжиженный газ (LPG)',no220:'Нет подключения 220 В',unknown:'Подключение нужно уточнить'};
+  const versions = {electric:'Электрическое · 5 245 Вт (по запросу)',natural:'Газовое · природный газ · 295 Вт',lpg:'Газовое · LPG · 295 Вт'};
   let selection = null, previousText = '';
   function invalidate() {
     clearError(form); result.hidden = true; selection = null;
@@ -194,7 +194,7 @@ function configurator(request) {
     if (!Number.isSafeInteger(mass) || mass < 1) return showError(form,batch,'Укажите массу партии в целых граммах больше нуля.');
     if (!Number.isSafeInteger(count) || count < 1) return showError(form,qty,'Укажите целое количество ростеров больше нуля.');
     if (!supply) return showError(form,select('[name=supply]',form),'Выберите подключение или вариант для уточнения.');
-    if (power.validity.badInput || (power.value !== '' && (!Number.isFinite(watts) || watts <= 0))) return showError(form,power,'Укажите доступную мощность больше нуля или оставьте поле пустым.');
+    if (power.validity.badInput || (power.value !== '' && (!Number.isFinite(watts) || watts < 0))) return showError(form,power,'Укажите доступную мощность в ваттах или оставьте поле пустым.');
     const knownPower = Number.isFinite(watts);
     const gas = supply === 'natural' || supply === 'lpg';
     const fit = [];
@@ -202,6 +202,9 @@ function configurator(request) {
     if (mass < 500 || mass > 2500) {
       title = 'Нужна другая загрузка'; alternatives = true;
       note = 'Для BK-2 указан диапазон от 500 до 2 500 г за цикл. Масса вашей партии — ' + numberRu.format(mass) + ' г. Её можно передать для подбора другой модели.';
+    } else if (supply === 'no220') {
+      title = 'Требуется подключение 220 В';
+      note = 'Обеим версиям BK-2 нужно электропитание 220 В, в том числе газовой. Условия площадки можно передать специалисту для подбора.';
     } else if (supply === 'unknown') {
       title = 'Уточнить подключение'; note = 'Партия входит в диапазон BK-2. Для выбора исполнения нужны сведения о сети 220 В, доступной мощности и наличии газа.';
     } else {
@@ -212,7 +215,7 @@ function configurator(request) {
         note = gas ? 'Даже для газового нагрева требуется 295 Вт при 220 В на один ростер. Укажите ограничения площадки в запросе.' : 'Для электрического нагрева требуется 5 245 Вт при 220 В на один ростер. Ограничение мощности можно передать специалисту.';
       } else {
         title = fit.length > 1 ? 'Два возможных исполнения' : fit[0] === 'electric' ? 'Электрическое исполнение BK-2' : 'Газовое исполнение BK-2';
-        const params = fit.length > 1 ? 'Доступны газовый и электрический нагрев. Выберите исполнение для запроса.' : fit[0] === 'electric' ? 'Требование оборудования — 220 В и 5 245 Вт на один ростер.' : 'Электропитание привода — 220 В и 295 Вт на один ростер. Источник нагрева — '+(supply === 'lpg' ? 'сжиженный газ (LPG, 0–6 кПа).' : 'природный газ.');
+        const params = fit.length > 1 ? 'Доступны газовый и электрический нагрев. Выберите исполнение для запроса.' : fit[0] === 'electric' ? 'Для этой версии нужны 220 В и 5 245 Вт на один ростер. КДМ поставляет электрическое исполнение по запросу.' : 'Электропитание привода — 220 В и 295 Вт на один ростер. Источник нагрева — '+(supply === 'lpg' ? 'сжиженный газ (LPG, 0–6 кПа).' : 'природный газ.');
         note = (knownPower ? 'Партия входит в рабочий диапазон. ' : 'Партия подходит. Доступную мощность ещё нужно подтвердить. ') + params;
       }
     }

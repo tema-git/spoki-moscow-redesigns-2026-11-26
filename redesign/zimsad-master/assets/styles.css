@@ -2161,3 +2161,6 @@ legend {
 .questions .inside table { width: 100%; table-layout: fixed; border-collapse: collapse; }
 .questions .inside th,.questions .inside td { padding: 5px; border-bottom: 1px solid var(--line); text-align: left; }
 .questions .inside ul,.questions .inside ol { padding-inline-start: 1.4em; }
+@media (prefers-reduced-motion: reduce) {
+  .cutaway [data-layer] { transform: none; }
+}

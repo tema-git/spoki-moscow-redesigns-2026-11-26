@@ -25,6 +25,10 @@
     trigger.setAttribute('aria-label', 'Закрыть меню');
   });
   menu.addEventListener('click', () => closeMenu());
+  $('.contact-nav').addEventListener('click', () => closeMenu());
+  $('.top').addEventListener('focusout', e => {
+    if (!menu.hidden && e.relatedTarget && !$('.top').contains(e.relatedTarget)) closeMenu();
+  });
   document.addEventListener('pointerdown', e => {
     if (!menu.hidden && !e.target.closest('header')) closeMenu();
   });

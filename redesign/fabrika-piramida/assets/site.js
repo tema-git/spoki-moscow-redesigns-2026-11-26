@@ -198,14 +198,14 @@
     const pageSize=24;
     const field=one('#catalog-search',section);
     const historyUrl=()=>new URL(location.href);
-    const simplify = s => String(s).toLowerCase().replaceAll('ё','е').trim();
+    const simplify = s => String(s).normalize('NFKC').toLowerCase().replaceAll('ё','е').replace(/[^\p{L}\p{N}]+/gu,' ').trim();
     const arrowTemplate=one('template',section);
     const target=one('.product-list',section);
     let pageNumber=1;
     const numItems=count=>new Intl.NumberFormat('ru-RU').format(count);
     function render(){
       const terms=simplify(field.value).split(/\s+/).filter(Boolean);
-      const matches=terms.length?list.filter(row=>terms.every(term=>simplify(row[1]+' '+row[0]).includes(term))):list;
+      const matches=terms.length?list.filter(row=>terms.every(term=>simplify(row[1]+' '+row[0]+' '+row[3]).includes(term))):list;
       const max=Math.max(1,Math.ceil(matches.length/pageSize));pageNumber=Math.min(Math.max(1,pageNumber),max);
       const visible=matches.slice((pageNumber-1)*pageSize,pageNumber*pageSize);
       const fragment=document.createDocumentFragment();

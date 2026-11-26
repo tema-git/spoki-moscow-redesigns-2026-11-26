@@ -44,3 +44,5 @@ h1,h2,h3{font-family:var(--display);font-weight:600;text-wrap:balance}h1,h2{lett
 .actual-img .photo-button>img,.article-photo .photo-button>img,.gallery-picture>img,.section-short .compare-photos .photo-button>img,.view-frame>img{position:absolute;inset:0;width:100%;height:100%;min-width:0;min-height:0;object-fit:contain}
 
 .magnet::selection,.viewer ::selection,.pair-choice[aria-pressed=true]::selection,.filter-options button[aria-pressed=true]::selection,.option:has(input:checked) span::selection{background:transparent;color:#ffdfa2}.contact-action::selection,.form-paper ::selection{background:transparent;color:#8d3417}.gallery-picture>img,.actual-img .photo-button>img,.article-photo .photo-button>img,.section-short .compare-photos .photo-button>img{object-fit:scale-down}
+
+.case-second figcaption{margin-top:6px;color:#e0e0cb;font-size:14px;line-height:1.23}.workshop-view{max-width:min(390px,100%)}.section-short .compare-photos figcaption{font-size:15px;color:var(--mute);padding-top:6px}

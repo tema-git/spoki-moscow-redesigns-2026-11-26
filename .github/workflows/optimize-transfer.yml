@@ -1,0 +1,49 @@
+name: Prepare high-resolution gallery transfers
+on:
+  push:
+    branches: [source-recovery-nov26]
+    paths: ['.github/transport/optimize.json']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  prepare:
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        item: [i-tec-a, i-tec-b, i-tec-c, i-tec-d, laans-piano-a, laans-piano-b, virtu-style-a, virtu-style-b, virtu-style-c, restavraciy-a, restavraciy-b, restavraciy-c]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      JOB_PART: ${{ matrix.item }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Obtain the existing source artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          case "$JOB_PART" in
+            restavraciy-*) run=45819012767 ;;
+            *) run=45818744906 ;;
+          esac
+          name="gallery-$JOB_PART"
+          for i in $(seq 1 28); do
+            if gh run download "$run" --name "$name" --dir raw; then break; fi
+            sleep 15
+          done
+          test -f raw/result.json
+      - name: Make high-resolution web photographs
+        run: |
+          python3 -m venv "$RUNNER_TEMP/picture"
+          "$RUNNER_TEMP/picture/bin/pip" --disable-pip-version-check -q install Pillow==11.3.0
+          "$RUNNER_TEMP/picture/bin/python" .github/transport/prepare-images.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gallery-${{ matrix.item }}
+          path: gallery/
+          compression-level: 0
+          retention-days: 1
+

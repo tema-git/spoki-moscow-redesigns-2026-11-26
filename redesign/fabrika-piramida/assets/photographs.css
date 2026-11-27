@@ -23,12 +23,13 @@
 
 .photo-grid {
   display: grid;
+  align-items: start;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px clamp(14px, 1.5vw, 24px);
 }
 
 .photos-feature .photo-grid {
-  grid-template-columns: minmax(0, 1.82fr) minmax(0, 1fr) minmax(0, .94fr);
+  grid-template-columns: minmax(0, 1.447fr) repeat(2, minmax(0, 1.5fr));
 }
 
 .photo-tile {
@@ -38,27 +39,13 @@
 
 .photo-frame {
   display: block;
-  overflow: hidden;
-  background: var(--deep);
-  aspect-ratio: 3 / 2;
   cursor: zoom-in;
-}
-
-.photos-feature .photo-frame {
-  height: clamp(220px, 22vw, 326px);
-  aspect-ratio: auto;
 }
 
 .photo-frame img {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 57%;
-}
-
-.photos-feature .photo-tile:first-child img {
-  object-position: center 65%;
+  height: auto;
 }
 
 .photo-tile figcaption {
@@ -104,7 +91,7 @@
   padding: 0;
   border: 0;
   color: var(--pale);
-  background: var(--deep);
+  background: transparent;
 }
 
 .photo-viewer::backdrop {
@@ -128,17 +115,17 @@ html:has(.photo-viewer[open]) {
 
 .photo-viewer img {
   display: block;
-  max-width: 100%;
+  max-width: calc(100vw - 28px);
   max-height: 78vh;
   max-height: 78svh;
   width: auto;
   height: auto;
-  object-fit: contain;
 }
 
 .photo-viewer figcaption {
-  width: 100%;
-  padding: 10px 16px;
+  width: 0;
+  min-width: 100%;
+  padding: 10px 0 2px;
   font-size: 16px;
   line-height: 1.35;
 }
@@ -165,13 +152,10 @@ html:has(.photo-viewer[open]) {
   height: 22px;
 }
 
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .photo-frame img {
-    transition: transform .35s ease-out;
-  }
-  .photo-frame:hover img {
-    transform: scale(1.025);
-  }
+.photo-frame:is(:hover, :focus-visible) + figcaption {
+  text-decoration: underline;
+  text-underline-offset: .2em;
+  text-decoration-thickness: 1px;
 }
 
 @media (max-width: 700px) {
@@ -185,13 +169,6 @@ html:has(.photo-viewer[open]) {
   }
   .photos-feature .photo-tile:first-child {
     grid-column: 1 / -1;
-  }
-  .photos-feature .photo-frame {
-    height: auto;
-    aspect-ratio: 1.3;
-  }
-  .photos-feature .photo-tile:first-child .photo-frame {
-    aspect-ratio: 1.65;
   }
   .photo-heading h2 {
     font-size: clamp(26px, 6.8vw, 35px);

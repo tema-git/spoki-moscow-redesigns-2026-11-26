@@ -30,7 +30,7 @@
   document.addEventListener('focusin', event => {
     if (!one('#mobile-menu').hidden && !event.target.closest('.mast')) syncMenu(false);
   });
-  window.matchMedia('(min-width: 881px)').addEventListener('change', event => { if (event.matches) syncMenu(false); });
+  window.matchMedia('(min-width: 1161px)').addEventListener('change', event => { if (event.matches) syncMenu(false); });
   const request = one('#request');
   const success = one('.success');
   const config = one('#specification');
@@ -245,29 +245,9 @@
     window.addEventListener('popstate',restore);restore();
   }
   initCatalogue();
-  const canvas=one('.hero-canvas'), hero=one('.hero'), stand=one('.layer-stage');
   const stick=one('.magnet');
-  let raf=0;
   const clamp=(n,lo,hi)=>Math.min(hi,Math.max(lo,n));
   function set(node,values){Object.entries(values).forEach(([key,value])=>node.style.setProperty(key,value))}
-  function scrollArt(){
-    raf=0;
-    if(reduced.matches)return;
-    if(canvas){
-      const h=hero.getBoundingClientRect();
-      if(h.bottom>=-15&&h.top<innerHeight)set(canvas,{'--scroll-shift':clamp((-h.top+75)/h.height,0,1)*33+'px'});
-    }
-    if(stand){
-      const r=stand.getBoundingClientRect();
-      if(r.top<innerHeight+80 && r.bottom>-80){
-        const progress=clamp((innerHeight-r.top)/(innerHeight*.64+r.height*.20),0,1);
-        const distance=1-progress;
-        set(stand,{'--cloth-x':(-55*distance)+'px','--cloth-y':(-33*distance+32*progress)+'px','--slate-x':(48*distance)+'px','--slate-y':(4*progress)+'px','--base-x':(-19*distance)+'px','--base-y':(34*distance-29*progress)+'px'});
-      }
-    }
-  }
-  function queueScroll(){if(!raf)raf=requestAnimationFrame(scrollArt)}
-  if(canvas||stand){window.addEventListener('scroll',queueScroll,{passive:true});window.addEventListener('resize',queueScroll,{passive:true});queueScroll();reduced.addEventListener('change',queueScroll)}
   function reactive(node,apply,reset) {
     if(!node)return;
     let frame=0,point=null;
@@ -281,10 +261,6 @@
       });
     });
     node.addEventListener('pointerleave',()=>{point=null;reset()});
-  }
-  if(canvas){
-    const pose=(x,y)=>set(canvas,{'--hx':x*31+'px','--hy':y*17+'px','--hr':x*2.1+'deg','--lx':-x*16+'px','--ly':-y*5+'px','--lr':-x*1.9+'deg','--bx':x*20+'px','--by':y*11+'px'});
-    reactive(hero,pose,()=>pose(0,0));
   }
   reactive(stick,(x,y)=>set(stick,{'--mx':x*7+'px','--my':y*6+'px'}),()=>set(stick,{'--mx':'0px','--my':'0px'}));
   all('.group-card,.gallery-art,.product-image,.feature-split .picture').forEach(node=>{

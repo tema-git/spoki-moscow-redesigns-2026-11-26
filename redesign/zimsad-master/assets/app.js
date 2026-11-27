@@ -36,7 +36,7 @@
   document.addEventListener('focusin', (e) => {
     if (!menu.hidden && !e.target.closest('.bar')) closeMenu();
   });
-  matchMedia('(min-width: 961px)').addEventListener('change', (e) => {
+  matchMedia('(min-width: 1081px)').addEventListener('change', (e) => {
     if (e.matches) closeMenu();
   });
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -78,15 +78,13 @@
   }
   const hero = $('.hero'),
     stage = $('.model-stage'),
-    canvas = $('.model-stage canvas'),
-    assembly = $('.assembly');
+    canvas = $('.model-stage canvas');
   if (canvas && window.Pavilion) {
     let x = 0,
       y = 0,
       touch = null,
       pending = 0,
-      heroVisible = true,
-      sceneVisible = false;
+      heroVisible = true;
     function modelSemantics() {
       stage.tabIndex = reduced.matches ? -1 : 0;
       stage.setAttribute('role', reduced.matches ? 'img' : 'slider');
@@ -118,8 +116,6 @@
       else x = clamp(x + (['ArrowRight', 'ArrowUp'].includes(event.key) ? 0.25 : -0.25), -1, 1);
       queue();
     });
-    const layers = $$('[data-layer]', assembly),
-      cut = $('.cutaway', assembly);
     function paint() {
       pending = 0;
       if (heroVisible) {
@@ -151,53 +147,19 @@
         stage.dataset.yaw = yaw.toFixed(3);
         stage.dataset.lift = (progress * 0.62).toFixed(3);
       }
-      if (sceneVisible || reduced.matches) {
-        const box = cut.getBoundingClientRect(),
-          progress = reduced.matches
-            ? 1
-            : clamp((innerHeight - box.top) / (innerHeight * 0.62 + box.height * 0.34), 0, 1);
-        const distance = 1 - progress;
-        for (const layer of layers) {
-          const [a, b] =
-            layer.dataset.layer === 'glass'
-              ? [-48, -55]
-              : layer.dataset.layer === 'seal'
-                ? [-14, -24]
-                : [30, 21];
-          layer.setAttribute(
-            'transform',
-            'translate(' + (a * distance).toFixed(2) + ' ' + (b * distance).toFixed(2) + ')',
-          );
-        }
-        cut.dataset.progress = progress.toFixed(3);
-      }
     }
     function queue() {
       if (!pending) pending = requestAnimationFrame(paint);
     }
-    new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.target === hero) heroVisible = e.isIntersecting;
-          else sceneVisible = e.isIntersecting;
-        }
-        queue();
-      },
-      { rootMargin: '90px 0px' },
-    ).observe(hero);
-    const io = new IntersectionObserver(
-      (entries) => {
-        sceneVisible = entries[0].isIntersecting;
-        queue();
-      },
-      { rootMargin: '100px 0px' },
-    );
-    io.observe(assembly);
+    new IntersectionObserver(([entry]) => {
+      heroVisible = entry.isIntersecting;
+      if (heroVisible) queue();
+    }, { rootMargin: '90px 0px' }).observe(hero);
     new ResizeObserver(queue).observe(stage);
     addEventListener(
       'scroll',
       () => {
-        if (heroVisible || sceneVisible) queue();
+        if (heroVisible) queue();
       },
       { passive: true },
     );

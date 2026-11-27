@@ -19,7 +19,7 @@
   menuButton.addEventListener('click',() => menu(mobileMenu.hidden));
   document.addEventListener('click',e => { if (!mobileMenu.hidden && (!e.target.closest('.mast') || e.target.closest('a'))) menu(false); });
   document.addEventListener('keydown',e => { if (e.key === 'Escape' && !mobileMenu.hidden) menu(false,true); });
-  matchMedia('(min-width: 761px)').addEventListener('change',e => { if (e.matches) menu(false); });
+  matchMedia('(min-width: 996px)').addEventListener('change',e => { if (e.matches) menu(false); });
 
   $$('[data-paged]').forEach(group => {
     const tiles = $$('[data-tile]', group);
@@ -50,6 +50,14 @@
     update();
   });
 
+  function framePhoto(img, style) {
+    const existing=img.parentElement.classList.contains('natural-frame') ? img.parentElement : null;
+    if(!style){if(existing)existing.replaceWith(img);return;}
+    const frame=existing||document.createElement('span');
+    frame.className='natural-frame';
+    frame.style.cssText=style;
+    if(!existing){img.replaceWith(frame);frame.append(img);}
+  }
   const dialog = $('#gallery-dialog');
   const viewer = $('.light-view', dialog);
   const zoom = $('.light-zoom', dialog);
@@ -58,11 +66,13 @@
   function setZoom(enlarge) {
     const img = $('.light-image', dialog);
     if (enlarge) {
-      const size = img.getBoundingClientRect();
+      const frame = img.closest('.natural-frame');
+      const size = (frame || img).getBoundingClientRect();
+      const detailWidth = frame ? parseFloat(frame.style.getPropertyValue('--frame-w')) : img.naturalWidth;
       if (!size.width || !img.naturalWidth) return;
       viewer.style.width = size.width+'px';
       viewer.style.height = size.height+'px';
-      viewer.style.setProperty('--zoom-width', Math.max(img.naturalWidth,size.width*2)+'px');
+      viewer.style.setProperty('--zoom-width', Math.max(detailWidth,size.width*2)+'px');
     } else {
       viewer.removeAttribute('style');
     }
@@ -84,6 +94,7 @@
     const item = images[position];
     const image = $('.light-image',dialog);
     image.src = item.dataset.photo; image.alt = item.dataset.caption;
+    framePhoto(image,item.dataset.frame);
     fullSource.hidden = !item.dataset.original;
     if (item.dataset.original) fullSource.href = item.dataset.original;
     else fullSource.removeAttribute('href');
@@ -134,9 +145,10 @@
   function renderHero() {
     if(!stage) return;
     const moving=!reduced.matches;
+    window.VirtuMantel?.hero(x,y,heroProgress,!moving);
     const set=(n,s)=>stage.style.setProperty(n,s);
     set('--hx',(moving?x*13:0)+'px');set('--hy',(moving?y*6+heroProgress*10:0)+'px');
-    set('--ry',(moving?-4+x*9+heroProgress*3:0)+'deg');set('--rx',(moving?1-y*4+heroProgress*3:0)+'deg');
+    set('--ry','0deg');set('--rx','0deg');
     set('--hs',moving?1+heroProgress*.075:1);set('--beam',(50+x*22)+'%');set('--flame',moving?1+y*.08-heroProgress*.08:1);
   }
   function readScroll() {
@@ -147,15 +159,32 @@
     }
     if(scene) {
       const b=scene.getBoundingClientRect();
-      if(b.top<innerHeight+40 && b.bottom>-40) {
-        const p=reduced.matches?1:clamp((innerHeight-b.top)/(innerHeight*.54+b.height*.44),0,1);
-        const opening=1-p;
-        for(const [name,n] of Object.entries({top:-48,left:-52,right:52,base:27,back:9})) scene.style.setProperty('--'+name,(opening*n).toFixed(2)+'px');
-      }
+      const pinned=scene.firstElementChild;
+      const header=Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header'))||68;
+      const entrance=Math.max(1,innerHeight-header);
+      const runway=b.height-pinned.offsetHeight;
+      let p;
+      if(runway<60) p=clamp((innerHeight-b.top)/(innerHeight*.7+b.height*.4),0,1);
+      else if(b.top>=header) p=.28*clamp((innerHeight-b.top)/entrance,0,1);
+      else p=.28+.72*clamp((header-b.top)/runway,0,1);
+      window.VirtuMantel?.study(p,reduced.matches);
     }
   }
   const scrollRequest=()=>{if(!request)request=requestAnimationFrame(readScroll);};
   if(stage||scene){addEventListener('scroll',scrollRequest,{passive:true});addEventListener('resize',scrollRequest);readScroll();}
+  if(stage){
+    let origin=null;
+    stage.addEventListener('pointerdown',e=>{
+      if(e.pointerType==='touch' && !reduced.matches)origin={x:e.clientX,y:e.clientY,start:x};
+    },{passive:true});
+    stage.addEventListener('pointermove',e=>{
+      if(!origin || e.pointerType!=='touch')return;
+      const dx=e.clientX-origin.x,dy=e.clientY-origin.y;
+      if(Math.abs(dy)>Math.abs(dx)+7){origin=null;return;}
+      if(Math.abs(dx)>5){x=clamp(origin.start+dx/(stage.clientWidth*.36),-1,1);renderHero();}
+    },{passive:true});
+    for(const name of ['pointerup','pointercancel'])stage.addEventListener(name,()=>{origin=null;},{passive:true});
+  }
   let touchFrame;
   document.addEventListener('pointermove',e=>{
     if(!pointer.matches||reduced.matches||e.pointerType==='touch')return;
@@ -173,7 +202,7 @@
     const t=e.target.closest?.('[data-stage],[data-react],.contact-button,.compare-card,.direction,.form-card');
     if(!t||t.contains(e.relatedTarget))return;
     if(touchFrame)cancelAnimationFrame(touchFrame);
-    if(t===stage){x=y=0;renderHero();}else for(const k of ['--px','--py','--light','--mx','--my'])t.style.removeProperty(k);
+    if(t===stage){if(e.pointerType!=='touch'){x=y=0;renderHero();}}else for(const k of ['--px','--py','--light','--mx','--my'])t.style.removeProperty(k);
   });
   reduced.addEventListener('change',()=>{x=y=0;renderHero();readScroll();});
 
@@ -273,6 +302,7 @@
       $('#picked-'+side).textContent=m.name;
       $$('[role=option]', $('#list-'+side)).forEach(o=>o.setAttribute('aria-selected',String(o.dataset.id===m.id)));
       const im=$('.model-picture',card);if(m.img){im.src=m.img;im.alt='Портал «'+m.name+'»';im.hidden=false;}else{im.removeAttribute('src');im.hidden=true;}
+      framePhoto(im,m.frame);
       $('.compare-details',card).innerHTML='<p class="product-price">'+esc(m.price)+'</p>'+(m.offer?'<p class="offer">'+esc(m.offer)+'</p>':'')+'<dl class="specs">'+field('Ширина, высота, глубина',dimensions(m))+field('Проём',aperture(m))+field('Камень в карточке',m.material||'Породу уточняют в салоне')+field('Совместимость',m.firebox?m.firebox.replace(/^изготовлен[ао]?\s+под\s+/i,'Под '):'По выбранной топке')+'</dl><a class="source-link" href="'+esc(m.href)+'">Карточка модели '+svgArrow+'</a>';
       const pick=$('.choose-base',card);pick.setAttribute('aria-pressed',String(state.base===side));pick.textContent=state.base===side?'Выбран для заявки':'Выбрать для заявки';
     }
@@ -292,6 +322,7 @@
     const ex=$('#material-example');
     ex.hidden=!stoneExample;
     if(stoneExample)ex.innerHTML='<a href="'+esc(stoneExample.href)+'">'+(stoneExample.img?'<img src="'+esc(stoneExample.img)+'" alt="" loading="lazy">':'')+'<span><small>Пример камня на изделии</small>'+esc(stoneExample.material)+' · «'+esc(stoneExample.name)+'»</span>'+svgArrow+'</a>';
+    if(stoneExample?.img)framePhoto($('img',ex),stoneExample.frame);
     $('#choice-summary').textContent='«'+selected.name+'» · '+stoneFor(selected)+' · цена исходной модели — '+selected.price;
   }
   function makeBrief(m,stone) {

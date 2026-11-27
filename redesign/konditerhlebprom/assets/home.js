@@ -89,16 +89,4 @@
   q('.new-request').addEventListener('click',()=>{
     request.reset();previousAutofill='';originalBrief='';q('.prepared').textContent='';success.hidden=true;request.hidden=false;q('#person').focus();
   });
-  const dialog=q('#photos'),cards=Array.from(document.querySelectorAll('[data-photo]'));
-  let index=0,trigger;
-  function picture(n){
-    index=(n+cards.length)%cards.length;const image=cards[index].querySelector('img');
-    q('#photo-large').src=image.currentSrc||image.src;q('#photo-large').alt=image.alt;q('#photo-label').textContent=image.alt;q('.photo-index').textContent=(index+1)+' / '+cards.length;
-  }
-  cards.forEach((card,i)=>card.addEventListener('click',()=>{trigger=card;picture(i);dialog.showModal();q('.photo-close').focus();}));
-  q('.photo-close').addEventListener('click',()=>dialog.close());
-  q('.photo-prev').addEventListener('click',()=>picture(index-1));q('.photo-next').addEventListener('click',()=>picture(index+1));
-  dialog.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();picture(index+(event.key==='ArrowRight'?1:-1));}});
-  dialog.addEventListener('click',event=>{if(event.target===dialog){const b=dialog.getBoundingClientRect();if(event.clientX<b.left||event.clientX>b.right||event.clientY<b.top||event.clientY>b.bottom)dialog.close();}});
-  dialog.addEventListener('close',()=>{trigger?.focus({preventScroll:true});});
 })();

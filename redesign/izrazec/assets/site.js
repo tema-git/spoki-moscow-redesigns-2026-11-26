@@ -25,7 +25,7 @@
     trigger.setAttribute('aria-label', 'Закрыть меню');
   });
   menu.addEventListener('click', () => closeMenu());
-  $('.contact-nav').addEventListener('click', () => closeMenu());
+  $('.head-actions').addEventListener('click', e => { if (e.target.closest('a')) closeMenu(); });
   $('.top').addEventListener('focusout', e => {
     if (!menu.hidden && e.relatedTarget && !$('.top').contains(e.relatedTarget)) closeMenu();
   });
@@ -35,7 +35,7 @@
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && !menu.hidden) closeMenu(true);
   });
-  matchMedia('(max-width: 760px)').addEventListener('change', e => { if (!e.matches) closeMenu(); });
+  matchMedia('(max-width: 1100px)').addEventListener('change', e => { if (!e.matches) closeMenu(); });
 
   function trackPointer(el, render, reset, touch = false) {
     let frame = 0;
@@ -78,36 +78,121 @@
     trackPointer(el, (x,y) => vars(el,{'--rx':x*5+'px','--ry':y*4+'px','--tw':x*3+'deg','--zs':'1.025'}), () => removeVars(el,['--rx','--ry','--tw','--zs']));
   });
 
+  function fireplaceCamera(model) {
+    const surfaces = all('[data-plane]', model).map(el => ({
+      el, plane: el.dataset.plane, xyz: el.dataset.origin.split(' ').map(Number)
+    }));
+    let previous = '';
+    return (yawDegrees, pitchDegrees) => {
+      const angles = yawDegrees.toFixed(2) + '/' + pitchDegrees.toFixed(2);
+      if (angles === previous) return;
+      previous = angles;
+      const yaw = yawDegrees * Math.PI / 180, pitch = pitchDegrees * Math.PI / 180;
+      const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+      const axes = {front: [cy, sy*sp, 0, cp], side: [sy, -cy*sp, 0, cp], top: [cy, sy*sp, -sy, cy*sp]};
+      for (const {el, plane, xyz: [x,y,z]} of surfaces) {
+        const m = [...axes[plane], x*cy-z*sy, y*cp+(x*sy+z*cy)*sp];
+        el.setAttribute('transform', 'matrix('+m.map(n => n.toFixed(5)).join(' ')+')');
+      }
+    };
+  }
+
+  function workshopFilm(section) {
+    const story = $('.process-story', section);
+    const stage = $('.assembly', story);
+    const steps = all('.process-steps li', story), shots = all('[data-shot]', stage);
+    const title = $('[data-shot-title]', stage), count = $('.shot-count', stage);
+    const mould = $('.forming-tile', stage), bisque = $('.firing-tile', stage);
+    const heat = $('.heat-lines', stage), paint = $('.pigment', stage), brush = $('.brush-travel', stage);
+    const finish = $('.finished-tile', stage), light = $('.glaze-flash', stage);
+    const smooth = t => t*t*(3-2*t);
+    const translate = (el,x,y) => el.setAttribute('transform', 'translate('+x.toFixed(2)+' '+y.toFixed(2)+')');
+    let previous = '', active = -1;
+    return () => {
+      const moving = !reduced.matches;
+      section.classList.toggle('with-motion', moving);
+      let position = 0;
+      if (moving) {
+        const storyTop = story.getBoundingClientRect().top;
+        const first = steps[0].getBoundingClientRect(), last = steps[steps.length-1].getBoundingClientRect();
+        const stageHeight = stage.getBoundingClientRect().height;
+        const headerHeight = $('.top').offsetHeight;
+        const stacked = getComputedStyle(story).display === 'block';
+        const readingLine = stacked
+          ? Math.min(innerHeight * .86, headerHeight + stageHeight + 110)
+          : headerHeight + Math.min(innerHeight * .44, stageHeight * .69);
+        if (first.top > readingLine) {
+          const entry = Math.max(1, first.top - storyTop + innerHeight*.99 - readingLine);
+          position = -.55 * clamp((first.top - readingLine)/entry,0,1);
+        } else {
+          position = clamp((readingLine - first.top)*3/Math.max(1,last.top-first.top),0,3.55);
+        }
+      }
+      const key = moving ? position.toFixed(4) : 'stills';
+      if (key === previous) return;
+      previous = key;
+      const phase = i => moving ? clamp((position - i + .55)/1.1,0,1) : .58;
+      const at = clamp(position,0,3);
+      shots.forEach((shot,i) => {
+        const opacity = smooth(clamp((.73-Math.abs(at-i))/.46,0,1));
+        shot.setAttribute('opacity', (moving ? opacity : Number(i===3)).toFixed(3));
+      });
+      const forming = phase(0), firing = phase(1), pigment = phase(2), glaze = phase(3);
+      translate(mould, (1-forming)*-22, (1-forming)*-41+forming*8);
+      translate(bisque, (firing-.5)*77, (.5-firing)*40);
+      heat.setAttribute('opacity', (.45 + firing*.55).toFixed(3));
+      translate(heat, 0, (1-firing)*10);
+      const paintX = 12 + pigment*166, paintY = 94 + 17*Math.sin(pigment*8);
+      paint.setAttribute('width', paintX.toFixed(2));
+      translate(brush, 113+.98*paintX+.12*paintY, 75-.115*paintX+.86*paintY);
+      translate(finish, (1-glaze)*12, (1-glaze)*9);
+      translate(light, 25+glaze*205, 0);
+      const index = moving ? Math.round(at) : 3;
+      if (index !== active) {
+        active = index;
+        title.textContent = $('h3', steps[index]).textContent;
+        count.textContent = '0'+(index+1)+' / 04';
+        steps.forEach((step,i) => step.classList.toggle('is-current', i===index));
+      }
+    };
+  }
+
   const hero = $('[data-hero-field]');
   if (hero) {
-    trackPointer(hero,(x,y) => vars(hero,{'--tilt-x':(8-y*14)+'deg','--tilt-y':(-9+x*19)+'deg','--gloss':(125+x*25-y*10)+'deg','--engrave-x':(-x*7)+'px','--engrave-y':(-y*5)+'px'}),
-      () => removeVars(hero,['--tilt-x','--tilt-y','--gloss','--engrave-x','--engrave-y']),true);
-    const assembly = $('.assembly');
-    let frame = 0;
-    function scrollArt() {
-      frame = 0;
-      if (reduced.matches) {
-        hero.style.removeProperty('--drift');
-        assembly.style.removeProperty('--sep');
-        return;
-      }
-      const h = hero.getBoundingClientRect();
-      if (h.bottom >= -20 && h.top < innerHeight) hero.style.setProperty('--drift',clamp(window.scrollY*.105,0,37)+'px');
-      const a = assembly.getBoundingClientRect();
-      const t = clamp((innerHeight-a.top)/(innerHeight*.78 + a.height*.26),0,1);
-      assembly.style.setProperty('--sep', (1-t).toFixed(4));
+    const draw = fireplaceCamera($('.hearth-model',hero));
+    const project = workshopFilm($('.process'));
+    let pointerX = 0, pointerY = 0, turn = 0, frame = 0;
+    function aim() {
+      draw(29 + pointerX*16 + turn*20, 14 - pointerY*7 + turn*4);
     }
-    const queue = () => { if (!frame) frame=requestAnimationFrame(scrollArt); };
+    trackPointer(hero,(x,y) => {
+      pointerX=x;pointerY=y;
+      vars(hero,{'--engrave-x':(-x*7)+'px','--engrave-y':(-y*5)+'px'});
+      aim();
+    },() => {
+      pointerX=0;pointerY=0;removeVars(hero,['--engrave-x','--engrave-y']);aim();
+    },true);
+    function scrollArt() {
+      frame=0;
+      const bounds=hero.getBoundingClientRect();
+      if (reduced.matches || (bounds.bottom>0 && bounds.top<innerHeight)) {
+        const documentBottom = window.scrollY + bounds.bottom;
+        turn = reduced.matches ? 0 : clamp(window.scrollY/Math.max(1,documentBottom-$('.top').offsetHeight),0,1);
+        aim();
+      }
+      project();
+    }
+    function queue(){if (!frame) frame=requestAnimationFrame(scrollArt);}
     window.addEventListener('scroll',queue,{passive:true});
-    window.addEventListener('resize',queue,{passive:true});
+    window.addEventListener('resize',queue);
     reduced.addEventListener('change',queue);
+    if (document.fonts) document.fonts.ready.then(queue);
     scrollArt();
-    const tile = $('.hero-tile');
+    const tile = $('.hero-tile', hero);
     const motifSamples = {bird:'850',flower:'4',rosette:'3'};
     for (const button of all('[data-motif]')) button.addEventListener('click', () => {
       const motif = button.dataset.motif;
-      tile.src = new URL('art/'+motif+'.svg',assets).href;
-      tile.alt = 'Эскиз росписи. '+button.textContent.trim();
+      tile.setAttribute('href',new URL('art/'+motif+'.svg',assets).href);
       all('[data-motif]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
       const sample = $('input[name=motif][value="'+motifSamples[motif]+'"]');
       if (sample) {sample.checked=true;sample.dispatchEvent(new Event('change',{bubbles:true}));}
@@ -162,6 +247,9 @@
     const show=i=>{
       current=(i+thumbs.length)%thumbs.length;
       const item=thumbs[current].dataset;
+      const thumbnail=$('img',thumbs[current]);
+      image.width=Number(thumbnail.getAttribute('width'));
+      image.height=Number(thumbnail.getAttribute('height'));
       image.src=item.full;image.alt=item.description;
       $('#lightbox-title').textContent=item.title;
       $('#lightbox-desc').textContent=item.description;
@@ -174,9 +262,7 @@
     $('#lb-next').addEventListener('click',()=>show(current+1));
     $('.lb-close').addEventListener('click',()=>dialog.close());
     dialog.addEventListener('click',event=>{
-      if(event.target!==dialog)return;
-      const rect=dialog.getBoundingClientRect();
-      if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)dialog.close();
+      if(event.target===dialog || event.target.classList.contains('lb-in'))dialog.close();
     });
     dialog.addEventListener('keydown',event=>{
       if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();show(current+(event.key==='ArrowLeft'?-1:1));}

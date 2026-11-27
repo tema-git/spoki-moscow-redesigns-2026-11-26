@@ -12,18 +12,16 @@
     if (restore) toggle.focus();
   }
   toggle.addEventListener('click', () => menu(panel.hidden));
-  panel.addEventListener('click', event => { if (event.target.closest('a')) menu(false); });
+  first('.mast').addEventListener('click', event => { if (!panel.hidden && event.target.closest('a')) menu(false); });
   document.addEventListener('pointerdown', event => { if (!panel.hidden && !event.target.closest('.mast')) menu(false); });
   document.addEventListener('focusin', event => { if (!panel.hidden && !event.target.closest('.mast')) menu(false); });
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && !panel.hidden) menu(false,true); });
-  matchMedia('(min-width:781px)').addEventListener('change',event => { if (event.matches) menu(false); });
+  matchMedia('(min-width:1061px)').addEventListener('change',event => { if (event.matches) menu(false); });
 
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const precise = matchMedia('(hover:hover) and (pointer:fine)');
   const clamp = (n, lo = -1, hi = 1) => Math.min(hi,Math.max(lo,n));
-  const stage = first('.drawing-stage');
-  const process = first('.cut-diagram');
-  function track(node,callback,includeTouch = false) {
+  function track(node,callback) {
     if (!node) return;
     let rect, frame = 0, position;
     const update = () => {
@@ -32,49 +30,21 @@
       callback(position[0],position[1]);
     };
     const move = event => {
-      if (motion.matches || (!includeTouch && !precise.matches) || (!precise.matches && event.pointerType !== 'touch')) return;
+      if (motion.matches || !precise.matches || event.pointerType === 'touch') return;
       rect = node.getBoundingClientRect();
       position = [clamp(2*(event.clientX-rect.left)/rect.width-1),clamp(2*(event.clientY-rect.top)/rect.height-1)];
       if (!frame) frame = requestAnimationFrame(update);
     };
     const restore = () => { cancelAnimationFrame(frame); frame = 0; callback(0,0); };
     node.addEventListener('pointermove',move,{passive:true});
-    if (includeTouch) node.addEventListener('pointerdown',move,{passive:true});
     node.addEventListener('pointerleave',restore);
     node.addEventListener('pointercancel',restore);
-    node.addEventListener('pointerup',event => { if (event.pointerType === 'touch') restore(); });
     motion.addEventListener('change',restore);
   }
   track(first('.contact-btn'),(x,y) => {
     const el=first('.contact-btn');el.style.setProperty('--magx',x*3+'px');el.style.setProperty('--magy',y*2.2+'px');
   });
-  track(stage,(x,y) => { stage.style.setProperty('--hx',x);stage.style.setProperty('--hy',y); },true);
   all('.react').forEach(node => track(node,(x,y) => {node.style.setProperty('--rx',x);node.style.setProperty('--ry',y);}));
-  if (stage || process) {
-    let scheduled = false;
-    const layers = process ? all('[data-layer]',process) : [];
-    const positions = {feed:[0,-91],roll:[-55,-18],die:[69,7],wire:[-110,3],drop:[0,26],tray:[92,28]};
-    function paint(){
-      scheduled = false;
-      if (stage) {
-        const box=stage.closest('.hero').getBoundingClientRect();
-        if(box.bottom>=-30) stage.style.setProperty('--hs',motion.matches ? 0 : clamp(-box.top/box.height,0,1));
-      }
-      if (process) {
-        const b=process.getBoundingClientRect();
-        if(b.top<innerHeight+110 && b.bottom>-100) {
-          const t=motion.matches ? 1 : clamp((innerHeight-b.top)/(innerHeight*.57+b.height*.55),0,1);
-          layers.forEach(layer => {
-            const pos=positions[layer.dataset.layer]; const remaining = 1-t;
-            layer.style.transform='translate('+pos[0]*remaining+'px,'+pos[1]*remaining+'px)';
-          });
-        }
-      }
-    }
-    function queue(){if(!scheduled){scheduled=true;requestAnimationFrame(paint);}}
-    addEventListener('scroll',queue,{passive:true});addEventListener('resize',queue,{passive:true});
-    motion.addEventListener('change',queue);queue();
-  }
   for (const directory of all('[data-directory]')) {
     const original = JSON.parse(first('.directory-data',directory).textContent);
     const input=first('input',directory),list=first('.directory-list',directory),more=first('.load-more',directory),clear=first('.clear-search',directory),status=first('.list-count',directory);

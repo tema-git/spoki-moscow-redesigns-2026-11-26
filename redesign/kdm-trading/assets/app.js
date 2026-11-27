@@ -28,7 +28,7 @@ function navigation() {
   document.addEventListener('focusin', e => {
     if (!menu.hidden && !e.target.closest('header')) show(false);
   });
-  matchMedia('(min-width:791px)').addEventListener('change', () => show(false));
+  matchMedia('(min-width:931px)').addEventListener('change', () => show(false));
 }
 
 function catalogSearch() {
@@ -255,19 +255,24 @@ function motion() {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)'), fine = matchMedia('(hover: hover) and (pointer: fine)');
   const hero = select('.hero') || select('.product-top'), plate = select('.hero-plate');
   const process = select('.process'), magnetic = select('.contact-head');
+  const model = plate && window.KdmBK2?.attach(plate);
+  const cycle = process && window.KdmBK2?.cycle(process);
+  let px=0,py=0,turn=0;
+  function setView(x,y,s) {
+    px=x;py=y;turn=s;
+    if (model) model(x,y,s);
+  }
   let scrollFrame = 0;
   function updateScroll() {
     scrollFrame = 0;
-    if (reduced.matches) return;
+    if (cycle) cycle(reduced.matches);
+    if (reduced.matches) {setView(0,0,0);return;}
     if (plate && hero) {
       const rect = hero.getBoundingClientRect();
-      if (rect.bottom>=0 && rect.top<=innerHeight) plate.style.setProperty('--hs',bound(-rect.top/Math.max(1,rect.height),0,1).toFixed(3));
-    }
-    if (process) {
-      const rect = process.getBoundingClientRect();
-      if (rect.bottom>=0 && rect.top <= innerHeight) {
-        const prog = bound((innerHeight-rect.top)/(innerHeight*.7+rect.height*.5),0,1);
-        process.style.setProperty('--progress',prog.toFixed(3));
+      if (rect.bottom>=0 && rect.top<=innerHeight) {
+        const s=bound((select('.header').offsetHeight-rect.top)/Math.max(1,rect.height*.78),0,1);
+        plate.style.setProperty('--hs',s.toFixed(3));
+        setView(px,py,s);
       }
     }
   }
@@ -275,13 +280,15 @@ function motion() {
     const touchTurn = e => {
       if (e.pointerType !== 'touch' || reduced.matches) return;
       const r = plate.getBoundingClientRect();
-      plate.style.setProperty('--px', bound((e.clientX-r.left)/r.width*2-1,-1,1).toFixed(3));
-      plate.style.setProperty('--py', bound((e.clientY-r.top)/r.height*2-1,-1,1).toFixed(3));
+      const x=bound((e.clientX-r.left)/r.width*2-1,-1,1), y=bound((e.clientY-r.top)/r.height*2-1,-1,1);
+      plate.style.setProperty('--px',x.toFixed(3));plate.style.setProperty('--py',y.toFixed(3));
+      setView(x,y,turn);
     };
     const release = e => {
       if (e.pointerType === 'touch') {
         plate.style.removeProperty('--px');
         plate.style.removeProperty('--py');
+        setView(0,0,turn);
       }
     };
     plate.addEventListener('pointerdown',touchTurn,{passive:true});
@@ -289,13 +296,14 @@ function motion() {
     plate.addEventListener('pointerup',release,{passive:true});
     plate.addEventListener('pointercancel',release,{passive:true});
   }
-  const schedule = () => { if (!scrollFrame && !reduced.matches) scrollFrame=requestAnimationFrame(updateScroll); };
+  const schedule = () => { if (!scrollFrame) scrollFrame=requestAnimationFrame(updateScroll); };
   addEventListener('scroll',schedule,{passive:true}); addEventListener('resize',schedule,{passive:true});
   reduced.addEventListener('change',schedule); schedule();
   let last = null, pending = null, pointerFrame = 0;
   function clearTarget(el) {
     if (!el) return;
     for (const k of ['--px','--py','--rx','--ry','--mx','--my']) el.style.removeProperty(k);
+    if(el===plate) setView(0,0,turn);
   }
   function drawPointer() {
     pointerFrame=0;
@@ -308,7 +316,7 @@ function motion() {
     const r=el.getBoundingClientRect();
     const x=bound((clientX-r.left)/r.width*2-1,-1,1), y=bound((clientY-r.top)/r.height*2-1,-1,1);
     if (el===magnetic) {el.style.setProperty('--mx',(x*3).toFixed(2)+'px');el.style.setProperty('--my',(y*2.5).toFixed(2)+'px');}
-    else if(el.classList.contains('hero-plate')) {el.style.setProperty('--px',x.toFixed(3));el.style.setProperty('--py',y.toFixed(3));}
+    else if(el===plate) {el.style.setProperty('--px',x.toFixed(3));el.style.setProperty('--py',y.toFixed(3));setView(x,y,turn);}
     else {el.style.setProperty('--rx',x.toFixed(3));el.style.setProperty('--ry',y.toFixed(3));}
   }
   document.addEventListener('pointermove', e => {

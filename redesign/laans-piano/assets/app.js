@@ -271,6 +271,8 @@
   let photoGroup=[],current=0,opener=null,touchStart=null;
   function showPhoto() {
     const button=photoGroup[current],im=one('img',button);
+    const w=Number(im.getAttribute('width')) || im.naturalWidth, h=Number(im.getAttribute('height')) || im.naturalHeight;
+    if(w && h){lightbox.style.setProperty('--image-ratio',String(w/h));lightbox.style.setProperty('--image-width',w+'px');}
     fullImg.src=im.currentSrc||im.src;fullImg.alt=im.alt;
     one('#photo-title').textContent=button.dataset.caption;
     one('#photo-count').textContent=(current+1)+' / '+photoGroup.length;
@@ -300,18 +302,97 @@
     touchStart=null;
   },{passive:true});
   const hero=one('.hero-stage'),sound=one('.acoustic-scene');
+  const pianoSurfaces = all('.piano-model [data-xyz]').map(el => ({
+    el, vertices: Float32Array.from(el.dataset.xyz.split(' '), Number),
+    lid: !!el.closest('.piano-lid'), prop: !!el.closest('.piano-prop')
+  }));
+  let pointerX = 0, pointerY = 0, lidScroll = 0, lastView = '';
+  function drawPiano() {
+    const reduced = reduce.matches;
+    const horizontal = reduced ? 0 : pointerX, vertical = reduced ? 0 : pointerY, travel = reduced ? 0 : lidScroll;
+    const view = [horizontal, vertical, travel].map(n => n.toFixed(3)).join(',');
+    if (view === lastView || !pianoSurfaces.length) return;
+    lastView = view;
+    const yaw = horizontal * .15 + travel * .075;
+    const pitch = vertical * .055 + travel * .025;
+    const lid = (69 + horizontal * 3.5 + travel * 9) * Math.PI / 180;
+    const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
+    const lidX = Math.cos(lid), lidZ = Math.sin(lid);
+    for (const {el, vertices, prop, lid: hinged} of pianoSurfaces) {
+      const points = [];
+      for (let i = 0; i < vertices.length; i += 3) {
+        let x = vertices[i], y = vertices[i+1], z = vertices[i+2];
+        if (hinged || (prop && i === 3)) {
+          const reach = Math.hypot(x, z - 86);
+          x = reach * lidX; z = 86 + reach * lidZ;
+        }
+        const side = 73 + (x-73)*cy - (y-83)*sy;
+        const depth = (x-73)*sy + (y-83)*cy;
+        const back = 83 + depth*cp - (z-70)*sp;
+        const up = 70 + depth*sp + (z-70)*cp;
+        const sx = (105 + 2.35*side + 1.66*back).toFixed(2);
+        const screenY = (365 + .52*side - .76*back - 1.90*up).toFixed(2);
+        if (vertices.length === 3) { el.setAttribute('cx',sx); el.setAttribute('cy',screenY); }
+        else points.push(sx + ',' + screenY);
+      }
+      if (points.length) el.setAttribute('points', points.join(' '));
+    }
+  }
+  const parts = sound ? all('[data-part]', sound).map(layer => {
+    const line = one('[data-for="' + layer.dataset.part + '"]', sound);
+    const [dx, dy] = layer.dataset.shift.split(' ').map(Number);
+    const [degrees, cx, cy] = (layer.dataset.turn || '0 0 0').split(' ').map(Number);
+    const tip = new DOMPoint(...line.dataset.tip.split(' ').map(Number));
+    return {layer, line, tip, dx, dy, degrees, cx, cy};
+  }) : [];
+  const tappedString = sound && one('[data-tip-surface="strings"]', sound);
+  const phaseTitle = sound && one('.mechanism-caption b', sound);
+  const phaseNames = ['Клавиша опускается', 'Молоточек ударяет по струне', 'Струна колеблется', 'Дека передаёт звук воздуху'];
+  function easeRange(t, start, end) {
+    const v = Math.max(0, Math.min(1, (t - start)/(end - start)));
+    return v * v * (3 - 2 * v);
+  }
+  let lastAssembly = -1;
+  function positionMechanism(progress) {
+    if (progress === lastAssembly) return;
+    lastAssembly = progress;
+    const remaining = 1 - easeRange(progress, 0, .36);
+    const press = easeRange(progress, .10, .36) * (1 - easeRange(progress, .65, .94));
+    const strike = easeRange(progress, .28, .51) * (1 - easeRange(progress, .52, .73));
+    const vibration = 13 * Math.sin((progress - .49) * 42) * easeRange(progress,.48,.55) * (1-easeRange(progress,.60,.89));
+    const resonance = easeRange(progress, .66, .98);
+    const phase = progress < .29 ? 0 : progress < .52 ? 1 : progress < .73 ? 2 : 3;
+    sound.dataset.phase = String(phase);
+    if (phaseTitle.textContent !== phaseNames[phase]) phaseTitle.textContent = phaseNames[phase];
+    sound.style.setProperty('--resonance', resonance.toFixed(3));
+    tappedString.setAttribute('d', 'M143 91.6 Q364.5 ' + (76.4 + vibration) + ' 586 61.2');
+    for (const {layer, line, tip, dx, dy, degrees, cx, cy} of parts) {
+      const pose = new DOMMatrix().translate(dx * remaining, dy * remaining);
+      if (degrees) pose.translateSelf(cx, cy).rotateSelf(degrees * remaining).translateSelf(-cx, -cy);
+      if (layer.dataset.part === 'key') pose.translateSelf(255, 251).rotateSelf(-6.5 * press).translateSelf(-255, -251);
+      if (layer.dataset.part === 'hammer') pose.translateSelf(191, 222).rotateSelf(-7.5 * strike).translateSelf(-191, -222);
+      if (progress === 1) layer.removeAttribute('transform');
+      else layer.setAttribute('transform', 'matrix(' + [pose.a, pose.b, pose.c, pose.d, pose.e, pose.f].join(' ') + ')');
+      const surfacePoint = layer.dataset.part === 'strings' ? new DOMPoint(tip.x, tip.y + 2 * .42 * .58 * vibration) : tip;
+      const end = surfacePoint.matrixTransform(pose);
+      line.setAttribute('d', line.dataset.prefix + end.x.toFixed(3) + ' ' + end.y.toFixed(3));
+    }
+  }
   let scrollFrame=0;
   function scrollScene() {
     scrollFrame=0;
-    if(reduce.matches)return;
     if(hero) {
       const rect=hero.getBoundingClientRect();
-      if(rect.bottom>0) hero.style.setProperty('--scroll',String(Math.min(1,Math.max(0,scrollY/Math.max(rect.height,1)))));
+      if(rect.bottom>0 || reduce.matches) {
+        lidScroll=reduce.matches ? 0 : Math.min(1,Math.max(0,scrollY/Math.max(rect.height,1)));
+        hero.style.setProperty('--scroll',String(lidScroll));
+        drawPiano();
+      }
     }
     if(sound) {
       const rect=sound.getBoundingClientRect();
-      const progress=Math.max(0,Math.min(1,(innerHeight-rect.top)/(innerHeight*.54+rect.height*.24)));
-      sound.style.setProperty('--sp',String(progress));
+      const progress=Math.max(0,Math.min(1,(innerHeight-rect.top)/(innerHeight*.82+rect.height*.22)));
+      positionMechanism(reduce.matches ? 1 : progress);
     }
   }
   const scheduleScroll=()=>{if(!scrollFrame)scrollFrame=requestAnimationFrame(scrollScene);};
@@ -319,7 +400,8 @@
   let activeTarget=null,frame=0,x=0,y=0;
   function clearPointer(el) {
     if(!el)return;
-    ['--hx','--hy','--px','--py','--mx','--my','--res-x'].forEach(k=>el.style.removeProperty(k));
+    ['--hx','--hy','--px','--py','--mx','--my','--res-x','--photo-light'].forEach(k=>el.style.removeProperty(k));
+    if (el === hero) {pointerX=0;pointerY=0;drawPiano();}
   }
   document.addEventListener('pointermove',e=>{
     if(!pointerFine.matches||reduce.matches)return;
@@ -332,27 +414,74 @@
       frame=0;
       if(!activeTarget)return;
       const r=activeTarget.getBoundingClientRect();const px=Math.max(-1,Math.min(1,2*(x-r.left)/r.width-1));const py=Math.max(-1,Math.min(1,2*(y-r.top)/r.height-1));
-      if(activeTarget===hero) {activeTarget.style.setProperty('--hx',String(px));activeTarget.style.setProperty('--hy',String(py));}
+      if(activeTarget===hero) {pointerX=px;pointerY=py;activeTarget.style.setProperty('--hx',String(px));activeTarget.style.setProperty('--hy',String(py));drawPiano();}
       else if(activeTarget.classList.contains('magnet')) {activeTarget.style.setProperty('--mx',px*3+'px');activeTarget.style.setProperty('--my',py*2+'px');}
-      else {activeTarget.style.setProperty('--px',px*5+'px');activeTarget.style.setProperty('--py',py*4+'px');if (activeTarget.classList.contains('resonance')) activeTarget.style.setProperty('--res-x',String(px));}
+      else {activeTarget.style.setProperty('--px',px*5+'px');activeTarget.style.setProperty('--py',py*4+'px');activeTarget.style.setProperty('--photo-light',String((px+1)/2));if (activeTarget.classList.contains('resonance')) activeTarget.style.setProperty('--res-x',String(px));}
     });
   },{passive:true});
   document.addEventListener('pointerout',e=>{if(!e.relatedTarget){clearPointer(activeTarget);activeTarget=null;}});
-  const play=one('#play-note');let ctx,toneTimer;
-  if(play)play.addEventListener('click',async()=>{
-    const status=one('.audible-status');
-    try {
-      const Audio=window.AudioContext||window.webkitAudioContext;
-      if(!Audio)throw new Error('Unavailable');
-      ctx=ctx||new Audio();await ctx.resume();
-      const start=ctx.currentTime;
-      [[440,.12,1.45],[880,.044,.95],[1320,.021,.7],[1760,.009,.45]].forEach(([freq,level,decay])=>{
-        const osc=ctx.createOscillator(), gain=ctx.createGain();
-        osc.frequency.value=freq;gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(level,start+.012);gain.gain.exponentialRampToValueAtTime(.0001,start+decay);
-        osc.connect(gain);gain.connect(ctx.destination);osc.start(start);osc.stop(start+decay+.02);osc.onended=()=>{osc.disconnect();gain.disconnect();};
-      });
-      play.disabled=true;one('span',play).textContent='Звучит ля';status.textContent='Ля первой октавы, 440 Гц.';
-      clearTimeout(toneTimer);toneTimer=setTimeout(()=>{play.disabled=false;one('span',play).textContent='Повторить ноту';},1500);
-    } catch {status.textContent='В этом браузере звук недоступен.';}
-  });
+  const keyboard = one('.note-keys');
+  if (keyboard) {
+    const keys = all('.note-key', keyboard);
+    const readout = one('.note-readout');
+    const frequencyFormat = new Intl.NumberFormat('ru-RU', {maximumFractionDigits: 1});
+    const releaseTimers = new WeakMap();
+    const partials = [[1, .12, 1.45], [2, .044, .95], [3, .021, .7], [4, .009, .45]];
+    let audio, mix, mouseStrike;
+    function selectKey(key) {
+      for (const button of keys) button.tabIndex = button === key ? 0 : -1;
+    }
+    selectKey(keys[0]);
+    async function strike(key) {
+      selectKey(key);
+      const frequency = 440 * 2 ** ((Number(key.dataset.midi) - 69) / 12);
+      const octave = key.dataset.octave === '2' ? '²' : '¹';
+      readout.textContent = key.dataset.pitch + octave + ' · ' + frequencyFormat.format(frequency) + ' Гц';
+      clearTimeout(releaseTimers.get(key));
+      key.classList.add('is-sounding');
+      releaseTimers.set(key, setTimeout(() => key.classList.remove('is-sounding'), 340));
+      try {
+        if (!audio) {
+          const Audio = window.AudioContext || window.webkitAudioContext;
+          audio = new Audio();
+          mix = audio.createDynamicsCompressor();
+          mix.connect(audio.destination);
+        }
+        if (audio.state !== 'running') await audio.resume();
+        const now = audio.currentTime;
+        for (const [multiple, volume, decay] of partials) {
+          const oscillator = audio.createOscillator(), gain = audio.createGain();
+          oscillator.frequency.value = frequency * multiple;
+          gain.gain.setValueAtTime(.0001, now);
+          gain.gain.exponentialRampToValueAtTime(volume, now + .009);
+          gain.gain.exponentialRampToValueAtTime(.0001, now + decay);
+          oscillator.connect(gain); gain.connect(mix);
+          oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+          oscillator.start(now); oscillator.stop(now + decay + .02);
+        }
+      } catch {
+        readout.textContent = 'В этом браузере звук недоступен.';
+      }
+    }
+    keyboard.addEventListener('pointerdown', event => {
+      mouseStrike = event.pointerType === 'mouse' && event.button === 0 ? event.target.closest('.note-key') : null;
+      if (mouseStrike) strike(mouseStrike);
+    });
+    keyboard.addEventListener('click', event => {
+      const key = event.target.closest('.note-key');
+      if (key && (event.detail === 0 || key !== mouseStrike)) strike(key);
+      mouseStrike = null;
+    });
+    keyboard.addEventListener('keydown', event => {
+      const index = keys.indexOf(event.target);
+      if (index < 0) return;
+      if (event.repeat && ['Enter', ' '].includes(event.key)) { event.preventDefault(); return; }
+      const offsets = {ArrowLeft: -1, ArrowRight: 1, Home: -index, End: keys.length - 1 - index};
+      if (!Object.prototype.hasOwnProperty.call(offsets, event.key)) return;
+      event.preventDefault();
+      const next = keys[Math.max(0, Math.min(keys.length - 1, index + offsets[event.key]))];
+      selectKey(next);
+      next.focus({preventScroll:true});
+    });
+  }
 })();

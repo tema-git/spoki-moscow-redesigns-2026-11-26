@@ -33,44 +33,14 @@
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape' && !menu.hidden) close(true);
     });
-    matchMedia('(min-width:791px)').addEventListener('change', event => { if (event.matches) close(); });
+    matchMedia('(min-width:981px)').addEventListener('change', event => { if (event.matches) close(); });
   }
 
   function initMotion() {
-    const plate = $('[data-hero-plate]');
-    const pattern = $('.pattern-svg');
     const contact = $('.contact-button');
-    const visible = new Set();
-    let scrollFrame = 0, geometryVersion = 0;
-    const clamp = n => Math.max(0, Math.min(n, 1));
-    function drawScroll() {
-      scrollFrame = 0;
-      if (prefersLess.matches) return;
-      if (visible.has(plate)) {
-        const rect = plate.getBoundingClientRect();
-        const progress = clamp(Math.max(0, document.documentElement.scrollTop) / Math.max(rect.height * .8, 1));
-        plate.style.setProperty('--hs', progress.toFixed(3));
-      }
-      if (visible.has(pattern)) {
-        const rect = pattern.getBoundingClientRect();
-        const progress = clamp((innerHeight - rect.top) / (innerHeight * .64 + rect.height * .38));
-        pattern.style.setProperty('--sp', progress.toFixed(3));
-      }
-    }
-    function requestScroll() {
-      if (!scrollFrame && visible.size && !prefersLess.matches) scrollFrame = requestAnimationFrame(drawScroll);
-    }
-    const observer = new IntersectionObserver(entries => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) visible.add(entry.target);
-        else visible.delete(entry.target);
-      }
-      requestScroll();
-    }, {rootMargin:'24px'});
-    if (plate) observer.observe(plate);
-    if (pattern) observer.observe(pattern);
-    addEventListener('scroll', () => { geometryVersion++; requestScroll(); }, {passive:true});
-    addEventListener('resize', () => { geometryVersion++; requestScroll(); }, {passive:true});
+    let geometryVersion = 0;
+    addEventListener('scroll', () => { geometryVersion++; }, {passive:true});
+    addEventListener('resize', () => { geometryVersion++; }, {passive:true});
     function track(element, isMagnet = false) {
       let frame = 0, x = 0, y = 0, rect, version = -1;
       const reset = () => {
@@ -99,13 +69,9 @@
       element.addEventListener('pointercancel', reset);
       prefersLess.addEventListener('change', reset);
     }
-    if (plate) track(plate);
     if (contact) track(contact, true);
     for (const element of all('[data-react]')) track(element);
-    prefersLess.addEventListener('change', () => {
-      if (prefersLess.matches) { plate?.style.removeProperty('--hs'); pattern?.style.removeProperty('--sp'); }
-      else requestScroll();
-    });
+
   }
 
   function initGalleries() {
@@ -132,15 +98,43 @@
     const next = $('.view-next');
     const discuss = $('.viewer-discuss');
     let group = [], index = 0, startX = null, startY = null, opener;
+    function fitPicture() {
+      if (!viewer.open || !viewImage.width) return;
+      const item = group[index]?.querySelector('img');
+      if (!item) return;
+      const width = Number(item.getAttribute('width'));
+      const height = Number(item.getAttribute('height'));
+      const limit = Math.min(width,viewer.clientWidth);
+      const available = Math.min(window.visualViewport?.height || innerHeight, innerHeight);
+      // Each change in photo width can wrap its caption. Re-measure the controls at that width.
+      let target = limit;
+      for (let pass = 0; pass < 4; pass++) {
+        viewer.style.setProperty('--media-width', target + 'px');
+        const chrome = [$('.viewer-bar'),$('.viewer-info'),discuss].reduce((total,element) => {
+          const style = getComputedStyle(element);
+          return total + element.offsetHeight + parseFloat(style.marginTop) + parseFloat(style.marginBottom);
+        }, 0);
+        const style = getComputedStyle(viewer);
+        const room = available - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) - chrome - 8;
+        const nextWidth = Math.min(target,Math.max(1,Math.floor(room * width / height)));
+        if (target === nextWidth) break;
+        target = nextWidth;
+      }
+      viewer.style.setProperty('--media-width', target + 'px');
+    }
     function show(indexToShow) {
       index = (indexToShow + group.length) % group.length;
       const item = group[index];
+      const thumbnail = item.querySelector('img');
+      viewImage.width = Number(thumbnail.getAttribute('width'));
+      viewImage.height = Number(thumbnail.getAttribute('height'));
       viewImage.src = item.href;
       viewImage.alt = item.dataset.caption;
       caption.textContent = item.dataset.caption;
       count.textContent = (index + 1)+' / '+group.length;
       prev.hidden = next.hidden = group.length < 2;
       discuss.href = home+'?primer='+encodeURIComponent(item.dataset.shot)+'#zapis';
+      fitPicture();
     }
     document.addEventListener('click', event => {
       const item = event.target.closest('a[data-gallery]');
@@ -150,15 +144,18 @@
       group = all('a[data-gallery]').filter(a => a.dataset.gallery === item.dataset.gallery && !a.closest('[hidden]'));
       show(group.indexOf(item));
       viewer.showModal();
+      fitPicture();
       $('.close-view').focus({preventScroll:true});
     });
+    addEventListener('resize', fitPicture, {passive:true});
+    window.visualViewport?.addEventListener('resize', fitPicture, {passive:true});
+    document.fonts?.ready.then(fitPicture);
     prev.addEventListener('click', () => show(index-1));
     next.addEventListener('click', () => show(index+1));
     $('.close-view').addEventListener('click', () => viewer.close());
     viewer.addEventListener('click', event => {
       if (event.target !== viewer) return;
-      const b = viewer.getBoundingClientRect();
-      if (event.clientX < b.left || event.clientX > b.right || event.clientY < b.top || event.clientY > b.bottom) viewer.close();
+      viewer.close();
     });
     viewer.addEventListener('close', () => {
       viewImage.removeAttribute('src');
@@ -210,7 +207,11 @@
       const name = o.title + (wedding ? ' на свадьбу' : '');
       $('#plan-label').textContent = name;
       $('#plan-price').textContent = 'от '+o.price+' ₽ с тканью · '+o.days+' дней';
-      const photo = $('.plan-img');photo.src = o.photo;photo.alt = o.alt;
+      const photo = $('.plan-img');
+      photo.width = o.width;
+      photo.height = o.height;
+      photo.src = o.photo;
+      photo.alt = o.alt;
       $('#plan-product').href = wedding ? 'poshiv-kostyuma-na-zakaz/svadebniy/index.html' : o.url;
     }
     function showStep(i, focus) {

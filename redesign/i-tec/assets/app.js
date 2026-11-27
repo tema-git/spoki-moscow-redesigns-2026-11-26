@@ -29,7 +29,7 @@ function navigation() {
   document.addEventListener('keydown', event => { if (event.key === 'Escape' && !nav.hidden) close(true); });
   document.addEventListener('click', event => { if (!nav.hidden && (!event.target.closest('.mast') || event.target.closest('a'))) close(); });
   document.addEventListener('focusin', event => { if (!nav.hidden && !event.target.closest('.mast')) close(); });
-  matchMedia('(min-width:951px)').addEventListener('change', event => { if (event.matches) close(); });
+  matchMedia('(min-width:1180px)').addEventListener('change', event => { if (event.matches) close(); });
 }
 
 function galleryViewer() {
@@ -67,9 +67,7 @@ function galleryViewer() {
     opener?.focus({preventScroll:true});
   });
   el.addEventListener('click', event => {
-    if (event.target !== el) return;
-    const box = el.getBoundingClientRect();
-    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) el.close();
+    if (event.target === el) el.close();
   });
   previous.addEventListener('click', () => change(-1));
   next.addEventListener('click', () => change(1));
@@ -254,10 +252,19 @@ function contact() {
 
 function interactions() {
   const art=one('[data-optic]'), hero=one('#hero'), scene=one('[data-assembly]'), magnet=one('.contact-btn'), brief=one('.brief-section');
+  const model=art && window.mountItecProjector?.(one('.projector-canvas',art));
+  const panel=scene && one('.assembly',scene);
+  let modelX=0, modelY=0, modelProgress=0;
+  function renderModel(){
+    if(!model)return;
+    model(modelX,modelY,modelProgress);
+    art.dataset.modeled='';
+  }
   let target=null,pointerEvent=null,frame=0,scrollFrame=0;
   function clear(target) {
     if(!target)return;
     for(const key of ['--ry','--rx','--px','--py','--gx','--gy','--beam','--lx','--ly','--ix','--iy','--mag-x','--mag-y','--meter']) target.style.removeProperty(key);
+    if(target===art){modelX=0;modelY=0;renderModel();}
   }
   function coordinates(node,event) {
     const rect=node.getBoundingClientRect();
@@ -272,6 +279,7 @@ function interactions() {
       target===brief ? {'--meter':(.65+x*.7).toFixed(3)} :
       {'--lx':x*100+'%','--ly':y*100+'%','--ix':dx*10+'px','--iy':dy*8+'px'};
     Object.entries(styles).forEach(([k,v])=>target.style.setProperty(k,v));
+    if(target===art){modelX=dx*2;modelY=-dy*2;renderModel();}
   }
   function pointer(e){
     if(reduced.matches)return;
@@ -287,25 +295,63 @@ function interactions() {
   document.addEventListener('pointerup',e=>{if(e.pointerType==='touch'){clear(target);target=null;}},{passive:true});
   document.addEventListener('pointercancel',()=>{clear(target);target=null;},{passive:true});
   document.addEventListener('pointerout',e=>{if(!e.relatedTarget){clear(target);target=null;}},{passive:true});
+  function roomSequence(){
+    const track=scene.getBoundingClientRect();
+    const height=panel.offsetHeight;
+    const header=one('.mast').offsetHeight;
+    const top=Math.round(Math.max(header+8,(innerHeight-height)*.49));
+    scene.style.setProperty('--scene-top',top+'px');
+    const travel=track.height-height;
+    const entering=bound((innerHeight-track.top)/Math.max(1,innerHeight-top),0,1);
+    const progress=travel>5 ? entering*.22+bound((top-track.top)/travel,0,1)*.78
+      : bound((innerHeight-track.top)/(innerHeight*.65+height*.63),0,1);
+    const ramp=(a,b)=>{
+      const t=bound((progress-a)/(b-a),0,1);
+      return t*t*(3-2*t);
+    };
+    const walls=ramp(.00,.23), panels=ramp(.1,.36), screen=ramp(.34,.57), seats=ramp(.44,.68), mount=ramp(.57,.76);
+    const pixels={
+      '--base-shift':14*(1-walls),'--walls-x':-28*(1-walls),'--walls-y':-29*(1-walls),
+      '--panels-x':-43*(1-panels),'--panels-y':-12*(1-panels),
+      '--screen-x':47*(1-screen),'--screen-y':-37*(1-screen),
+      '--seats-x':39*(1-seats),'--seats-y':30*(1-seats),'--mount-y':-29*(1-mount)
+    };
+    Object.entries(pixels).forEach(([k,v])=>scene.style.setProperty(k,v.toFixed(2)+'px'));
+    const opacities={'--panels-alpha':.32+.68*panels,'--screen-alpha':screen,'--seats-alpha':seats,'--mount-alpha':mount,'--light-alpha':ramp(.69,.92),'--test-alpha':ramp(.77,.97)};
+    Object.entries(opacities).forEach(([k,v])=>scene.style.setProperty(k,v.toFixed(3)));
+    const phase=progress<.34?1:progress<.68?2:3;
+    if(scene.dataset.phase!==String(phase)){
+      scene.dataset.phase=String(phase);
+    }
+  }
   function paintScroll(){
     scrollFrame=0;
-    if(reduced.matches){if(art)art.removeAttribute('style');if(scene)scene.removeAttribute('style');return;}
+    if(reduced.matches){
+      if(art){art.removeAttribute('style');modelX=0;modelY=0;modelProgress=0;renderModel();}
+      if(scene){scene.removeAttribute('style');delete scene.dataset.scrub;delete scene.dataset.phase;}
+      return;
+    }
     if(hero && art){
       const r=hero.getBoundingClientRect();
-      if(r.bottom>=-20 && r.top<=innerHeight){const t=bound(-r.top/Math.max(1,r.height),0,1);art.style.setProperty('--fall',t*53+'px');art.style.setProperty('--tilt',t*-8+'deg');art.style.setProperty('--beam-alpha',String(.9-t*.3));}
+      if(r.bottom>=-20 && r.top<=innerHeight){
+        const t=bound((one('.mast').offsetHeight-r.top)/Math.max(1,Math.min(r.height,innerHeight)*.47),0,1);
+        modelProgress=t;
+        art.style.setProperty('--fall',t*53+'px');art.style.setProperty('--tilt',t*-8+'deg');art.style.setProperty('--beam-alpha',String(.9-t*.3));
+        renderModel();
+      }
     }
     if(scene){
+      const initial=!scene.hasAttribute('data-scrub');
+      if(initial)scene.dataset.scrub='';
       const r=scene.getBoundingClientRect();
-      if(r.top<innerHeight+5 && r.bottom>=-20) {
-        const amount=1-bound((innerHeight-r.top)/(innerHeight*.54+r.height*.22),0,1);
-        const values={'--base-shift':15,'--walls-x':-30,'--walls-y':-28,'--screen-x':48,'--screen-y':-38,'--seats-x':35,'--seats-y':35};
-        Object.entries(values).forEach(([k,v])=>scene.style.setProperty(k,v*amount+'px'));
-      }
+      if(initial || (r.top<innerHeight+5 && r.bottom>=-20))roomSequence();
     }
   }
   const schedule=()=>{if((hero||scene)&&!scrollFrame)scrollFrame=requestAnimationFrame(paintScroll);};
   addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule,{passive:true});
-  reduced.addEventListener('change',()=>{clear(target);schedule();});
+  if(panel)new ResizeObserver(schedule).observe(panel);
+  if(hero)document.fonts.ready.then(schedule);
+  reduced.addEventListener('change',()=>{clear(target);target=null;schedule();});
   schedule();
 }
 
